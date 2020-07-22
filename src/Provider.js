@@ -12,10 +12,10 @@ function checkStoreShape(store) {
   }
 }
 
-function Provider(store) {
+function Provider(store, name = 'store') {
   checkStoreShape(store)
   return function(appConfig) {
-    return assign({}, appConfig, {store})
+    return assign({}, appConfig, { name: store })
   }
 }
 
