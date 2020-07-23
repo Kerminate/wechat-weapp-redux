@@ -52,7 +52,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -71,9 +71,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  connect: _connect2.default
 	};
 
-/***/ },
+/***/ }),
 /* 1 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -103,9 +103,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    assign: assign
 	};
 
-/***/ },
+/***/ }),
 /* 2 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -133,9 +133,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = warning;
 
-/***/ },
+/***/ }),
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -146,6 +146,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var _Object = __webpack_require__(1);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 	function checkStoreShape(store) {
 	  var missingMethods = ['subscribe', 'dispatch', 'getState'].filter(function (m) {
@@ -158,17 +160,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function Provider(store) {
+	  var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'store';
+
 	  checkStoreShape(store);
 	  return function (appConfig) {
-	    return (0, _Object.assign)({}, appConfig, { store: store });
+	    return (0, _Object.assign)({}, appConfig, _defineProperty({}, name, store));
 	  };
 	}
 
 	module.exports = Provider;
 
-/***/ },
+/***/ }),
 /* 4 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -225,7 +229,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    var _onLoad = pageConfig.onLoad,
-	        _onUnload = pageConfig.onUnload;
+	        _onUnload = pageConfig.onUnload,
+	        _ready = pageConfig.ready,
+	        _detached = pageConfig.detached;
 
 
 	    function onLoad(options) {
@@ -249,15 +255,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    return (0, _Object.assign)({}, pageConfig, mapDispatch(app.store.dispatch), { onLoad: onLoad, onUnload: onUnload });
+	    /**
+	     * 兼容Component情况
+	     */
+	    var ready = onLoad;
+	    var detached = onUnload;
+
+	    return (0, _Object.assign)({}, pageConfig, mapDispatch(app.store.dispatch), { onLoad: onLoad, onUnload: onUnload, ready: ready, detached: detached });
 	  };
 	}
 
 	module.exports = connect;
 
-/***/ },
+/***/ }),
 /* 5 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	"use strict";
 
@@ -286,9 +298,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = shallowEqual;
 
-/***/ },
+/***/ }),
 /* 6 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -329,7 +341,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = wrapActionCreators;
 
-/***/ }
+/***/ })
 /******/ ])
 });
 ;

@@ -38,6 +38,8 @@ function connect(mapStateToProps, mapDispatchToProps) {
     const {
       onLoad: _onLoad,
       onUnload: _onUnload,
+      ready: _ready,
+      detached: _detached,
     } = pageConfig
 
     function onLoad(options) {
@@ -61,7 +63,13 @@ function connect(mapStateToProps, mapDispatchToProps) {
       typeof this.unsubscribe === 'function' && this.unsubscribe()
     }
 
-    return assign({}, pageConfig, mapDispatch(app.store.dispatch), {onLoad, onUnload})
+    /**
+     * 兼容Component情况
+     */
+    const ready = onLoad
+    const detached = onUnload
+
+    return assign({}, pageConfig, mapDispatch(app.store.dispatch), {onLoad, onUnload, ready, detached})
   }
 }
 
