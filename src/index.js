@@ -1,7 +1,8 @@
 import Provider from './Provider.js'
-import connect from './connect.js'
+import { connectPage, connectComponent } from './connect.js'
 
 module.exports = {
   Provider: Provider,
-  connect: connect
+  connectPage: connectPage,
+  connectComponent: connectComponent,
 }

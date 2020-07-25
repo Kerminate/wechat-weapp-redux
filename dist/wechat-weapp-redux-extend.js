@@ -62,13 +62,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _connect = __webpack_require__(4);
 
-	var _connect2 = _interopRequireDefault(_connect);
-
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	module.exports = {
 	  Provider: _Provider2.default,
-	  connect: _connect2.default
+	  connectPage: _connect.connectPage,
+	  connectComponent: _connect.connectComponent
 	};
 
 /***/ }),
@@ -199,7 +198,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return { dispatch: dispatch };
 	};
 
-	function connect(mapStateToProps, mapDispatchToProps) {
+	function connectPage(mapStateToProps, mapDispatchToProps) {
 	  var shouldSubscribe = Boolean(mapStateToProps);
 	  var mapState = mapStateToProps || defaultMapStateToProps;
 	  var app = getApp();
@@ -228,6 +227,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.setData(mappedState);
 	    }
 
+	    // TODO:后期内部拆分2个逻辑，页面和组件复用不同逻辑，减少挂载的方法
 	    var _onLoad = pageConfig.onLoad,
 	        _onUnload = pageConfig.onUnload,
 	        _ready = pageConfig.ready,
@@ -280,7 +280,71 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	}
 
-	module.exports = connect;
+	function connectComponent(mapStateToProps, mapDispatchToProps) {
+	  var shouldSubscribe = Boolean(mapStateToProps);
+	  var mapState = mapStateToProps || defaultMapStateToProps;
+	  var app = getApp();
+
+	  var mapDispatch = void 0;
+	  if (typeof mapDispatchToProps === 'function') {
+	    mapDispatch = mapDispatchToProps;
+	  } else if (!mapDispatchToProps) {
+	    mapDispatch = defaultMapDispatchToProps;
+	  } else {
+	    mapDispatch = (0, _wrapActionCreators2.default)(mapDispatchToProps);
+	  }
+
+	  return function wrapWithConnect(componentConfig) {
+
+	    function handleChange(options) {
+	      if (!this.unsubscribe) {
+	        return;
+	      }
+
+	      var state = this.store.getState();
+	      var mappedState = mapState(state, options);
+	      if (!this.data || (0, _shallowEqual2.default)(this.data, mappedState)) {
+	        return;
+	      }
+	      this.setData(mappedState);
+	    }
+
+	    // TODO:后期内部拆分2个逻辑，页面和组件复用不同逻辑，减少挂载的方法
+	    var _ready = componentConfig.ready,
+	        _detached = componentConfig.detached;
+
+
+	    function ready(options) {
+	      this.store = app.store;
+	      if (!this.store) {
+	        (0, _warning2.default)("Store对象不存在!");
+	      }
+	      if (shouldSubscribe) {
+	        this.unsubscribe = this.store.subscribe(handleChange.bind(this, options));
+	        handleChange.call(this, options);
+	      }
+	      if (typeof _ready === 'function') {
+	        _ready.call(this, options);
+	      }
+	    }
+
+	    function detached() {
+	      if (typeof _detached === 'function') {
+	        _detached.call(this);
+	      }
+	      typeof this.unsubscribe === 'function' && this.unsubscribe();
+	    }
+
+	    var methods = (0, _Object.assign)({}, componentConfig.methods || {}, mapDispatch(app.store.dispatch));
+
+	    return (0, _Object.assign)({}, componentConfig, { ready: ready, detached: detached, methods: methods });
+	  };
+	}
+
+	module.exports = {
+	  connectPage: connectPage,
+	  connectComponent: connectComponent
+	};
 
 /***/ }),
 /* 5 */

@@ -6,7 +6,7 @@ import {assign} from './utils/Object.js'
 const defaultMapStateToProps = state => ({}) // eslint-disable-line no-unused-vars
 const defaultMapDispatchToProps = dispatch => ({dispatch})
 
-function connect(mapStateToProps, mapDispatchToProps) {
+function connectPage(mapStateToProps, mapDispatchToProps) {
   const shouldSubscribe = Boolean(mapStateToProps)
   const mapState = mapStateToProps || defaultMapStateToProps
   const app = getApp();
@@ -89,4 +89,70 @@ function connect(mapStateToProps, mapDispatchToProps) {
   }
 }
 
-module.exports = connect
+function connectComponent(mapStateToProps, mapDispatchToProps) {
+  const shouldSubscribe = Boolean(mapStateToProps)
+  const mapState = mapStateToProps || defaultMapStateToProps
+  const app = getApp();
+
+  let mapDispatch
+  if (typeof mapDispatchToProps === 'function') {
+    mapDispatch = mapDispatchToProps
+  } else if (!mapDispatchToProps) {
+    mapDispatch = defaultMapDispatchToProps
+  } else {
+    mapDispatch = wrapActionCreators(mapDispatchToProps)
+  }
+
+  return function wrapWithConnect(componentConfig) {
+
+    function handleChange(options) {
+      if (!this.unsubscribe) {
+        return
+      }
+
+      const state = this.store.getState()
+      const mappedState = mapState(state, options);
+      if (!this.data || shallowEqual(this.data, mappedState)) {
+        return;
+      }
+      this.setData(mappedState)
+    }
+
+    // TODO:后期内部拆分2个逻辑，页面和组件复用不同逻辑，减少挂载的方法
+    const {
+      ready: _ready,
+      detached: _detached,
+    } = componentConfig
+
+    function ready(options) {
+      this.store = app.store;
+      if (!this.store) {
+        warning("Store对象不存在!")
+      }
+      if(shouldSubscribe){
+        this.unsubscribe = this.store.subscribe(handleChange.bind(this, options));
+        handleChange.call(this, options)
+      }
+      if (typeof _ready === 'function') {
+        _ready.call(this, options)
+      }
+    }
+
+    function detached() {
+      if (typeof _detached === 'function') {
+        _detached.call(this)
+      }
+      typeof this.unsubscribe === 'function' && this.unsubscribe()
+    }
+
+
+    const methods = assign({}, componentConfig.methods || {}, mapDispatch(app.store.dispatch));
+
+    return assign({}, componentConfig, { ready, detached, methods })
+  }
+}
+
+module.exports = {
+  connectPage,
+  connectComponent,
+}
