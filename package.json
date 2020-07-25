@@ -1,13 +1,13 @@
 {
-  "name": "wechat-weapp-redux",
-  "version": "0.1.3",
+  "name": "wechat-weapp-redux-extend",
+  "version": "0.1.5",
   "description": "Wechat weapp redux bindings",
   "main": "lib/index.js",
   "scripts": {
     "clean": "rimraf lib",
     "build:lib": "babel src --out-dir lib",
-    "build:umd": "NODE_ENV=development webpack src/index.js dist/wechat-weapp-redux.js",
-    "build:umd:min": "NODE_ENV=production webpack src/index.js dist/wechat-weapp-redux.min.js",
+    "build:umd": "NODE_ENV=development webpack src/index.js dist/wechat-weapp-redux-extend.js",
+    "build:umd:min": "NODE_ENV=production webpack src/index.js dist/wechat-weapp-redux-extend.min.js",
     "build": "npm run build:lib && npm run build:umd && npm run build:umd:min",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "npm run clean && npm run build"
