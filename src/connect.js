@@ -35,6 +35,7 @@ function connect(mapStateToProps, mapDispatchToProps) {
       this.setData(mappedState)
     }
 
+    // TODO:后期内部拆分2个逻辑，页面和组件复用不同逻辑，减少挂载的方法
     const {
       onLoad: _onLoad,
       onUnload: _onUnload,
@@ -56,6 +57,20 @@ function connect(mapStateToProps, mapDispatchToProps) {
       }
     }
 
+    function ready(options) {
+      this.store = app.store;
+      if (!this.store) {
+        warning("Store对象不存在!")
+      }
+      if(shouldSubscribe){
+        this.unsubscribe = this.store.subscribe(handleChange.bind(this, options));
+        handleChange.call(this, options)
+      }
+      if (typeof _ready === 'function') {
+        _ready.call(this, options)
+      }
+    }
+
     function onUnload() {
       if (typeof _onUnload === 'function') {
         _onUnload.call(this)
@@ -63,11 +78,12 @@ function connect(mapStateToProps, mapDispatchToProps) {
       typeof this.unsubscribe === 'function' && this.unsubscribe()
     }
 
-    /**
-     * 兼容Component情况
-     */
-    const ready = onLoad
-    const detached = onUnload
+    function detached() {
+      if (typeof _detached === 'function') {
+        _detached.call(this)
+      }
+      typeof this.unsubscribe === 'function' && this.unsubscribe()
+    }
 
     return assign({}, pageConfig, mapDispatch(app.store.dispatch), {onLoad, onUnload, ready, detached})
   }

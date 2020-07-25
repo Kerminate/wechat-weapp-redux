@@ -248,6 +248,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 
+	    function ready(options) {
+	      this.store = app.store;
+	      if (!this.store) {
+	        (0, _warning2.default)("Store对象不存在!");
+	      }
+	      if (shouldSubscribe) {
+	        this.unsubscribe = this.store.subscribe(handleChange.bind(this, options));
+	        handleChange.call(this, options);
+	      }
+	      if (typeof _ready === 'function') {
+	        _ready.call(this, options);
+	      }
+	    }
+
 	    function onUnload() {
 	      if (typeof _onUnload === 'function') {
 	        _onUnload.call(this);
@@ -255,11 +269,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    /**
-	     * 兼容Component情况
-	     */
-	    var ready = onLoad;
-	    var detached = onUnload;
+	    function detached() {
+	      if (typeof _detached === 'function') {
+	        _detached.call(this);
+	      }
+	      typeof this.unsubscribe === 'function' && this.unsubscribe();
+	    }
 
 	    return (0, _Object.assign)({}, pageConfig, mapDispatch(app.store.dispatch), { onLoad: onLoad, onUnload: onUnload, ready: ready, detached: detached });
 	  };
