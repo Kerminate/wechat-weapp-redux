@@ -227,11 +227,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.setData(mappedState);
 	    }
 
-	    // TODO:后期内部拆分2个逻辑，页面和组件复用不同逻辑，减少挂载的方法
 	    var _onLoad = pageConfig.onLoad,
-	        _onUnload = pageConfig.onUnload,
-	        _ready = pageConfig.ready,
-	        _detached = pageConfig.detached;
+	        _onUnload = pageConfig.onUnload;
 
 
 	    function onLoad(options) {
@@ -248,20 +245,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 
-	    function ready(options) {
-	      this.store = app.store;
-	      if (!this.store) {
-	        (0, _warning2.default)("Store对象不存在!");
-	      }
-	      if (shouldSubscribe) {
-	        this.unsubscribe = this.store.subscribe(handleChange.bind(this, options));
-	        handleChange.call(this, options);
-	      }
-	      if (typeof _ready === 'function') {
-	        _ready.call(this, options);
-	      }
-	    }
-
 	    function onUnload() {
 	      if (typeof _onUnload === 'function') {
 	        _onUnload.call(this);
@@ -269,14 +252,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    function detached() {
-	      if (typeof _detached === 'function') {
-	        _detached.call(this);
-	      }
-	      typeof this.unsubscribe === 'function' && this.unsubscribe();
-	    }
-
-	    return (0, _Object.assign)({}, pageConfig, mapDispatch(app.store.dispatch), { onLoad: onLoad, onUnload: onUnload, ready: ready, detached: detached });
+	    return (0, _Object.assign)({}, pageConfig, mapDispatch(app.store.dispatch), { onLoad: onLoad, onUnload: onUnload });
 	  };
 	}
 
@@ -309,7 +285,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.setData(mappedState);
 	    }
 
-	    // TODO:后期内部拆分2个逻辑，页面和组件复用不同逻辑，减少挂载的方法
 	    var _ready = componentConfig.ready,
 	        _detached = componentConfig.detached;
 
