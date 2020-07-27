@@ -56,7 +56,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _Provider = __webpack_require__(3);
+	var _Provider = __webpack_require__(1);
 
 	var _Provider2 = _interopRequireDefault(_Provider);
 
@@ -72,6 +72,52 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.storeName = undefined;
+
+	var _warning = __webpack_require__(3);
+
+	var _warning2 = _interopRequireDefault(_warning);
+
+	var _Object = __webpack_require__(2);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+	var storeName = 'store';
+
+	function checkStoreShape(store) {
+	  var missingMethods = ['subscribe', 'dispatch', 'getState'].filter(function (m) {
+	    return !store.hasOwnProperty(m);
+	  });
+
+	  if (missingMethods.length > 0) {
+	    (0, _warning2.default)('Store似乎不是一个合法的Redux Store对象: ' + '缺少这些方法: ' + missingMethods.join(', ') + '。');
+	  }
+	}
+
+	function Provider(store) {
+	  var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : storeName;
+
+	  checkStoreShape(store);
+	  exports.storeName = storeName = name;
+	  return function (appConfig) {
+	    return (0, _Object.assign)({}, appConfig, _defineProperty({}, name, store));
+	  };
+	}
+
+	exports.default = Provider;
+	exports.storeName = storeName;
+
+/***/ }),
+/* 2 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -103,7 +149,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -133,43 +179,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = warning;
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _warning = __webpack_require__(2);
-
-	var _warning2 = _interopRequireDefault(_warning);
-
-	var _Object = __webpack_require__(1);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-	function checkStoreShape(store) {
-	  var missingMethods = ['subscribe', 'dispatch', 'getState'].filter(function (m) {
-	    return !store.hasOwnProperty(m);
-	  });
-
-	  if (missingMethods.length > 0) {
-	    (0, _warning2.default)('Store似乎不是一个合法的Redux Store对象: ' + '缺少这些方法: ' + missingMethods.join(', ') + '。');
-	  }
-	}
-
-	function Provider(store) {
-	  var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'store';
-
-	  checkStoreShape(store);
-	  return function (appConfig) {
-	    return (0, _Object.assign)({}, appConfig, _defineProperty({}, name, store));
-	  };
-	}
-
-	module.exports = Provider;
-
-/***/ }),
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -179,7 +188,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _shallowEqual2 = _interopRequireDefault(_shallowEqual);
 
-	var _warning = __webpack_require__(2);
+	var _warning = __webpack_require__(3);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -187,7 +196,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _wrapActionCreators2 = _interopRequireDefault(_wrapActionCreators);
 
-	var _Object = __webpack_require__(1);
+	var _Provider = __webpack_require__(1);
+
+	var _Object = __webpack_require__(2);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -232,7 +243,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	    function onLoad(options) {
-	      this.store = app.store;
+	      this.store = app[_Provider.storeName];
 	      if (!this.store) {
 	        (0, _warning2.default)("Store对象不存在!");
 	      }
@@ -252,7 +263,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    return (0, _Object.assign)({}, pageConfig, mapDispatch(app.store.dispatch), { onLoad: onLoad, onUnload: onUnload });
+	    return (0, _Object.assign)({}, pageConfig, mapDispatch(app[_Provider.storeName].dispatch), { onLoad: onLoad, onUnload: onUnload });
 	  };
 	}
 
@@ -290,7 +301,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	    function ready(options) {
-	      this.store = app.store;
+	      this.store = app[_Provider.storeName];
 	      if (!this.store) {
 	        (0, _warning2.default)("Store对象不存在!");
 	      }
@@ -310,7 +321,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    var methods = (0, _Object.assign)({}, componentConfig.methods || {}, mapDispatch(app.store.dispatch));
+	    var methods = (0, _Object.assign)({}, componentConfig.methods || {}, mapDispatch(app[_Provider.storeName].dispatch));
 
 	    return (0, _Object.assign)({}, componentConfig, { ready: ready, detached: detached, methods: methods });
 	  };

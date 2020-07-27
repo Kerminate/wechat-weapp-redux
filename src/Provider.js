@@ -1,6 +1,8 @@
 import warning from './warning.js'
 import {assign} from './utils/Object.js'
 
+let storeName = 'store';
+
 function checkStoreShape(store) {
   const missingMethods = ['subscribe', 'dispatch', 'getState'].filter(m => !store.hasOwnProperty(m));
 
@@ -12,11 +14,15 @@ function checkStoreShape(store) {
   }
 }
 
-function Provider(store, name = 'store') {
+function Provider(store, name = storeName) {
   checkStoreShape(store)
+  storeName = name;
   return function(appConfig) {
     return assign({}, appConfig, { [name]: store })
   }
 }
 
-module.exports = Provider
+export default Provider;
+export {
+  storeName,
+};

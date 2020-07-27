@@ -1,6 +1,7 @@
 import shallowEqual from './shallowEqual.js'
 import warning from './warning.js'
 import wrapActionCreators from './wrapActionCreators.js'
+import { storeName } from './Provider.js';
 import {assign} from './utils/Object.js'
 
 const defaultMapStateToProps = state => ({}) // eslint-disable-line no-unused-vars
@@ -41,7 +42,7 @@ function connectPage(mapStateToProps, mapDispatchToProps) {
     } = pageConfig
 
     function onLoad(options) {
-      this.store = app.store;
+      this.store = app[storeName];
       if (!this.store) {
         warning("Store对象不存在!")
       }
@@ -61,7 +62,7 @@ function connectPage(mapStateToProps, mapDispatchToProps) {
       typeof this.unsubscribe === 'function' && this.unsubscribe()
     }
 
-    return assign({}, pageConfig, mapDispatch(app.store.dispatch), {onLoad, onUnload})
+    return assign({}, pageConfig, mapDispatch(app[storeName].dispatch), {onLoad, onUnload})
   }
 }
 
@@ -100,7 +101,7 @@ function connectComponent(mapStateToProps, mapDispatchToProps) {
     } = componentConfig
 
     function ready(options) {
-      this.store = app.store;
+      this.store = app[storeName];
       if (!this.store) {
         warning("Store对象不存在!")
       }
@@ -121,7 +122,7 @@ function connectComponent(mapStateToProps, mapDispatchToProps) {
     }
 
 
-    const methods = assign({}, componentConfig.methods || {}, mapDispatch(app.store.dispatch));
+    const methods = assign({}, componentConfig.methods || {}, mapDispatch(app[storeName].dispatch));
 
     return assign({}, componentConfig, { ready, detached, methods })
   }

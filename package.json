@@ -1,8 +1,8 @@
 {
   "name": "wechat-weapp-redux-extend",
-  "version": "0.1.10",
+  "version": "0.1.12",
   "description": "Wechat weapp redux bindings",
-  "main": "lib/index.js",
+  "main": "dist/wechat-weapp-redux-extend.js",
   "scripts": {
     "clean": "rimraf lib",
     "build:lib": "babel src --out-dir lib",
