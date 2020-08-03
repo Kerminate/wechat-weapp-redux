@@ -184,15 +184,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _shallowEqual = __webpack_require__(5);
+	var _shallowEqual = __webpack_require__(7);
 
 	var _shallowEqual2 = _interopRequireDefault(_shallowEqual);
+
+	var _deepEqual = __webpack_require__(5);
+
+	var _deepEqual2 = _interopRequireDefault(_deepEqual);
+
+	var _diff = __webpack_require__(6);
+
+	var _diff2 = _interopRequireDefault(_diff);
 
 	var _warning = __webpack_require__(3);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
-	var _wrapActionCreators = __webpack_require__(6);
+	var _wrapActionCreators = __webpack_require__(8);
 
 	var _wrapActionCreators2 = _interopRequireDefault(_wrapActionCreators);
 
@@ -226,16 +234,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return function wrapWithConnect(pageConfig) {
 
 	    function handleChange(options) {
+	      // console.log(" %c dispatch 触发","color:red");
 	      if (!this.unsubscribe) {
 	        return;
 	      }
 
+	      // console.log('before getState', Date.now())
 	      var state = this.store.getState();
+	      // console.log('after getState', Date.now())
 	      var mappedState = mapState(state, options);
-	      if (!this.data || (0, _shallowEqual2.default)(this.data, mappedState)) {
-	        return;
+	      // console.log('after mapState', Date.now())
+	      if (!this.data || !mappedState || !Object.keys(mappedState)) return;
+	      // let isEqual = true;
+	      // for (let key in mappedState) {
+	      //   if (!deepEqual(this.data[key], mappedState[key])) {
+	      //     isEqual = false;
+	      //   }
+	      // }
+	      // if (isEqual) return;
+	      // this.setData(mappedState, () => {
+	      //   console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+	      //   console.log('after setData', Date.now())
+	      // });
+	      var originData = {};
+	      for (var key in mappedState) {
+	        originData[key] = this.data[key];
 	      }
-	      this.setData(mappedState);
+	      var diffResult = (0, _diff2.default)(mappedState, originData);
+	      // console.log('after diff', Date.now())
+	      if (Object.keys(diffResult).length === 0) return;
+	      var start = Date.now();
+	      this.setData(diffResult, function () {
+	        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+	        // console.log('after setData', Date.now())
+	      });
+	      // console.log('after deepequal', Date.now())
 	    }
 
 	    var _onLoad = pageConfig.onLoad,
@@ -336,6 +369,205 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 5 */
 /***/ (function(module, exports) {
 
+	'use strict';
+
+	var NUMBERTYPE = '[object Number]';
+	var STRINGTYPE = '[object String]';
+	var ARRAYTYPE = '[object Array]';
+	var OBJECTTYPE = '[object Object]';
+	var FUNCTIONTYPE = '[object Function]';
+
+	/**
+	 * 返回对相应的数据类型
+	 */
+	function getType(data) {
+	  return Object.prototype.toString.call(data);
+	}
+
+	/**
+	 * @param {*} sourceObj     
+	 * @param {*} compareObj    
+	 */
+	function deepEqual(sourceObj, compareObj) {
+	  // number,string,null,undefined
+	  if (sourceObj === compareObj) return true;
+	  var sourceType = getType(sourceObj);
+	  var compareType = getType(compareObj);
+	  // console.log(sourceType)
+	  // console.log(compareType)
+	  if (sourceType !== compareType) return false;
+	  if (sourceType === NUMBERTYPE || sourceType === STRINGTYPE) {
+	    if (sourceObj === compareObj) return true;else return false;
+	  } else if (sourceType === OBJECTTYPE) {
+	    if (Object.keys(sourceObj).length !== Object.keys(compareObj).length) return false;
+	    for (var key in sourceObj) {
+	      // console.log(sourceType[key])
+	      // console.log(compareObj[key])
+	      if (deepEqual(sourceObj[key]) !== deepEqual(compareObj[key])) {
+	        return false;
+	      }
+	    }
+	    return true;
+	  } else if (sourceType === ARRAYTYPE) {
+	    if (compareObj.length !== compareObj.length) return false;
+	    for (var index = 0; index < sourceObj.length; index++) {
+	      // console.log(sourceObj[index])
+	      // console.log(compareObj[index])
+	      if (deepEqual(sourceObj[index]) !== deepEqual(compareObj[index])) {
+	        return false;
+	      }
+	    }
+	    return true;
+	  }
+	  return true;
+	}
+
+	module.exports = deepEqual;
+
+	// const a = [1, [2,3], {age: 12}, { cart: [1], timp: [{id: 2, mthod: 1}] }];
+	// const b = [1, [2,3], {age: 12}, { cart: [1], timp: [{mthod: 1, id: 2}] }];
+	// console.log(deepEqual(a,b));
+	// console.log(deepEqual(undefined, undefined));
+	// console.log(deepEqual([undefined, {aa: 1 }], undefined, {aa:2}));
+	// console.log(deepEqual(1,2));
+	// console.log(Object.prototype.toString.call(undefined))
+	// console.log(Object.prototype.toString.call(111))
+	// console.log(Object.prototype.toString.call('jh'))
+	// console.log(typeof undefined)
+	// console.log(typeof null)
+	// console.log(undefined === undefined)
+	// console.log(null === null)
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = diff;
+	var ARRAYTYPE = '[object Array]';
+	var OBJECTTYPE = '[object Object]';
+	var FUNCTIONTYPE = '[object Function]';
+
+	function diff(current, pre) {
+	  var result = {};
+	  syncKeys(current, pre);
+	  _diff(current, pre, '', result);
+	  return result;
+	}
+
+	function syncKeys(current, pre) {
+	  if (current === pre) return;
+	  var rootCurrentType = type(current);
+	  var rootPreType = type(pre);
+	  if (rootCurrentType == OBJECTTYPE && rootPreType == OBJECTTYPE) {
+	    //if(Object.keys(current).length >= Object.keys(pre).length){
+	    for (var key in pre) {
+	      var currentValue = current[key];
+	      if (currentValue === undefined) {
+	        current[key] = null;
+	      } else {
+	        syncKeys(currentValue, pre[key]);
+	      }
+	    }
+	    //}
+	  } else if (rootCurrentType == ARRAYTYPE && rootPreType == ARRAYTYPE) {
+	    if (current.length >= pre.length) {
+	      pre.forEach(function (item, index) {
+	        syncKeys(current[index], item);
+	      });
+	    }
+	  }
+	}
+
+	function _diff(current, pre, path, result) {
+	  if (current === pre) return;
+	  var rootCurrentType = type(current);
+	  var rootPreType = type(pre);
+	  if (rootCurrentType == OBJECTTYPE) {
+	    if (rootPreType != OBJECTTYPE || Object.keys(current).length < Object.keys(pre).length && path !== '') {
+	      setResult(result, path, current);
+	    } else {
+	      var _loop = function _loop(key) {
+	        var currentValue = current[key];
+	        var preValue = pre[key];
+	        var currentType = type(currentValue);
+	        var preType = type(preValue);
+	        if (currentType != ARRAYTYPE && currentType != OBJECTTYPE) {
+	          if (currentValue !== pre[key]) {
+	            setResult(result, concatPathAndKey(path, key), currentValue);
+	          }
+	        } else if (currentType == ARRAYTYPE) {
+	          if (preType != ARRAYTYPE) {
+	            setResult(result, concatPathAndKey(path, key), currentValue);
+	          } else {
+	            if (currentValue.length < preValue.length) {
+	              setResult(result, concatPathAndKey(path, key), currentValue);
+	            } else {
+	              currentValue.forEach(function (item, index) {
+	                _diff(item, preValue[index], concatPathAndKey(path, key) + '[' + index + ']', result);
+	              });
+	            }
+	          }
+	        } else if (currentType == OBJECTTYPE) {
+	          if (preType != OBJECTTYPE || Object.keys(currentValue).length < Object.keys(preValue).length) {
+	            setResult(result, concatPathAndKey(path, key), currentValue);
+	          } else {
+	            for (var subKey in currentValue) {
+	              var realPath = concatPathAndKey(path, key) + (subKey.includes('.') ? '["' + subKey + '"]' : '.' + subKey);
+	              _diff(currentValue[subKey], preValue[subKey], realPath, result);
+	            }
+	          }
+	        }
+	      };
+
+	      for (var key in current) {
+	        _loop(key);
+	      }
+	    }
+	  } else if (rootCurrentType == ARRAYTYPE) {
+	    if (rootPreType != ARRAYTYPE) {
+	      setResult(result, path, current);
+	    } else {
+	      if (current.length < pre.length) {
+	        setResult(result, path, current);
+	      } else {
+	        current.forEach(function (item, index) {
+	          _diff(item, pre[index], path + '[' + index + ']', result);
+	        });
+	      }
+	    }
+	  } else {
+	    setResult(result, path, current);
+	  }
+	}
+
+	function concatPathAndKey(path, key) {
+	  return key.includes('.') ? path + ('["' + key + '"]') : (path == '' ? '' : path + ".") + key;
+	}
+
+	function setResult(result, k, v) {
+	  var t = type(v);
+	  if (t != FUNCTIONTYPE) {
+	    //if (t != OBJECTTYPE && t != ARRAYTYPE) {
+	    result[k] = v;
+	    // } else {
+	    //     result[k] = JSON.parse(JSON.stringify(v))
+	    // }
+	  }
+	}
+
+	function type(obj) {
+	  return Object.prototype.toString.call(obj);
+	}
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports) {
+
 	"use strict";
 
 	function shallowEqual(objA, objB) {
@@ -364,7 +596,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = shallowEqual;
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, exports) {
 
 	'use strict';

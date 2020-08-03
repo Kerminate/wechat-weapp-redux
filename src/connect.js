@@ -1,4 +1,6 @@
 import shallowEqual from './shallowEqual.js'
+import deepEqual from './deepEqual.js'
+import diff from "./diff.js";
 import warning from './warning.js'
 import wrapActionCreators from './wrapActionCreators.js'
 import { storeName } from './Provider.js';
@@ -24,16 +26,41 @@ function connectPage(mapStateToProps, mapDispatchToProps) {
   return function wrapWithConnect(pageConfig) {
 
     function handleChange(options) {
+      // console.log(" %c dispatch 触发","color:red");
       if (!this.unsubscribe) {
         return
       }
 
+      // console.log('before getState', Date.now())
       const state = this.store.getState()
+      // console.log('after getState', Date.now())
       const mappedState = mapState(state, options);
-      if (!this.data || shallowEqual(this.data, mappedState)) {
-        return;
+      // console.log('after mapState', Date.now())
+      if (!this.data || !mappedState || !Object.keys(mappedState)) return;
+      // let isEqual = true;
+      // for (let key in mappedState) {
+      //   if (!deepEqual(this.data[key], mappedState[key])) {
+      //     isEqual = false;
+      //   }
+      // }
+      // if (isEqual) return;
+      // this.setData(mappedState, () => {
+      //   console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+      //   console.log('after setData', Date.now())
+      // });
+      const originData = {};
+      for (let key in mappedState) {
+        originData[key] = this.data[key];
       }
-      this.setData(mappedState)
+      const diffResult = diff(mappedState, originData);
+      // console.log('after diff', Date.now())
+      if (Object.keys(diffResult).length === 0) return;
+      const start = Date.now();
+      this.setData(diffResult, () => {
+        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+        // console.log('after setData', Date.now())
+      });
+      // console.log('after deepequal', Date.now())
     }
 
     const {
