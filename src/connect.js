@@ -3,7 +3,7 @@ import deepEqual from './deepEqual.js'
 import diff from "./diff.js";
 import warning from './warning.js'
 import wrapActionCreators from './wrapActionCreators.js'
-import { storeName } from './Provider.js';
+import storeConfig from './storeConfig.js'
 import {assign} from './utils/Object.js'
 
 const defaultMapStateToProps = state => ({}) // eslint-disable-line no-unused-vars
@@ -13,6 +13,7 @@ function connectPage(mapStateToProps, mapDispatchToProps) {
   const shouldSubscribe = Boolean(mapStateToProps)
   const mapState = mapStateToProps || defaultMapStateToProps
   const app = getApp();
+  const storeName = storeConfig.get('name');
 
   let mapDispatch
   if (typeof mapDispatchToProps === 'function') {
@@ -97,6 +98,7 @@ function connectComponent(mapStateToProps, mapDispatchToProps) {
   const shouldSubscribe = Boolean(mapStateToProps)
   const mapState = mapStateToProps || defaultMapStateToProps
   const app = getApp();
+  const storeName = storeConfig.get('name');
 
   let mapDispatch
   if (typeof mapDispatchToProps === 'function') {
@@ -116,10 +118,31 @@ function connectComponent(mapStateToProps, mapDispatchToProps) {
 
       const state = this.store.getState()
       const mappedState = mapState(state, options);
-      if (!this.data || shallowEqual(this.data, mappedState)) {
-        return;
+
+      if (!this.data || !mappedState || !Object.keys(mappedState)) return;
+      // let isEqual = true;
+      // for (let key in mappedState) {
+      //   if (!deepEqual(this.data[key], mappedState[key])) {
+      //     isEqual = false;
+      //   }
+      // }
+      // if (isEqual) return;
+      // this.setData(mappedState, () => {
+      //   console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+      //   console.log('after setData', Date.now())
+      // });
+      const originData = {};
+      for (let key in mappedState) {
+        originData[key] = this.data[key];
       }
-      this.setData(mappedState)
+      const diffResult = diff(mappedState, originData);
+      // console.log('after diff', Date.now())
+      if (Object.keys(diffResult).length === 0) return;
+      const start = Date.now();
+      this.setData(diffResult, () => {
+        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+        // console.log('after setData', Date.now())
+      });
     }
 
     const {

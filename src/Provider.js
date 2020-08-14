@@ -1,5 +1,6 @@
 import warning from './warning.js'
 import {assign} from './utils/Object.js'
+import storeConfig from './storeConfig.js'
 
 let storeName = 'store';
 
@@ -14,15 +15,14 @@ function checkStoreShape(store) {
   }
 }
 
-function Provider(store, name = storeName) {
+function Provider(store, name) {
   checkStoreShape(store)
-  storeName = name;
+  if (name) {
+    storeConfig.set('name', name);
+  }
   return function(appConfig) {
     return assign({}, appConfig, { [name]: store })
   }
 }
 
 export default Provider;
-export {
-  storeName,
-};

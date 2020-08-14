@@ -56,65 +56,46 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _Provider = __webpack_require__(1);
+	var _Provider = __webpack_require__(4);
 
 	var _Provider2 = _interopRequireDefault(_Provider);
 
-	var _connect = __webpack_require__(4);
+	var _connect = __webpack_require__(5);
+
+	var _storeConfig = __webpack_require__(1);
+
+	var _storeConfig2 = _interopRequireDefault(_storeConfig);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	module.exports = {
 	  Provider: _Provider2.default,
 	  connectPage: _connect.connectPage,
-	  connectComponent: _connect.connectComponent
+	  connectComponent: _connect.connectComponent,
+	  storeConfig: _storeConfig2.default
 	};
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-	'use strict';
+	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.storeName = undefined;
+	var storeConfig = {};
 
-	var _warning = __webpack_require__(3);
-
-	var _warning2 = _interopRequireDefault(_warning);
-
-	var _Object = __webpack_require__(2);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-	var storeName = 'store';
-
-	function checkStoreShape(store) {
-	  var missingMethods = ['subscribe', 'dispatch', 'getState'].filter(function (m) {
-	    return !store.hasOwnProperty(m);
-	  });
-
-	  if (missingMethods.length > 0) {
-	    (0, _warning2.default)('Store似乎不是一个合法的Redux Store对象: ' + '缺少这些方法: ' + missingMethods.join(', ') + '。');
+	var customStoreConfig = {
+	  set: function set(key, value) {
+	    storeConfig[key] = value;
+	  },
+	  get: function get(key) {
+	    return storeConfig[key];
 	  }
-	}
+	};
 
-	function Provider(store) {
-	  var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : storeName;
-
-	  checkStoreShape(store);
-	  exports.storeName = storeName = name;
-	  return function (appConfig) {
-	    return (0, _Object.assign)({}, appConfig, _defineProperty({}, name, store));
-	  };
-	}
-
-	exports.default = Provider;
-	exports.storeName = storeName;
+	exports.default = customStoreConfig;
 
 /***/ }),
 /* 2 */
@@ -184,15 +165,63 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _shallowEqual = __webpack_require__(7);
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _warning = __webpack_require__(3);
+
+	var _warning2 = _interopRequireDefault(_warning);
+
+	var _Object = __webpack_require__(2);
+
+	var _storeConfig = __webpack_require__(1);
+
+	var _storeConfig2 = _interopRequireDefault(_storeConfig);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+	var storeName = 'store';
+
+	function checkStoreShape(store) {
+	  var missingMethods = ['subscribe', 'dispatch', 'getState'].filter(function (m) {
+	    return !store.hasOwnProperty(m);
+	  });
+
+	  if (missingMethods.length > 0) {
+	    (0, _warning2.default)('Store似乎不是一个合法的Redux Store对象: ' + '缺少这些方法: ' + missingMethods.join(', ') + '。');
+	  }
+	}
+
+	function Provider(store, name) {
+	  checkStoreShape(store);
+	  if (name) {
+	    _storeConfig2.default.set('name', name);
+	  }
+	  return function (appConfig) {
+	    return (0, _Object.assign)({}, appConfig, _defineProperty({}, name, store));
+	  };
+	}
+
+	exports.default = Provider;
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _shallowEqual = __webpack_require__(8);
 
 	var _shallowEqual2 = _interopRequireDefault(_shallowEqual);
 
-	var _deepEqual = __webpack_require__(5);
+	var _deepEqual = __webpack_require__(6);
 
 	var _deepEqual2 = _interopRequireDefault(_deepEqual);
 
-	var _diff = __webpack_require__(6);
+	var _diff = __webpack_require__(7);
 
 	var _diff2 = _interopRequireDefault(_diff);
 
@@ -200,11 +229,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _warning2 = _interopRequireDefault(_warning);
 
-	var _wrapActionCreators = __webpack_require__(8);
+	var _wrapActionCreators = __webpack_require__(9);
 
 	var _wrapActionCreators2 = _interopRequireDefault(_wrapActionCreators);
 
-	var _Provider = __webpack_require__(1);
+	var _storeConfig = __webpack_require__(1);
+
+	var _storeConfig2 = _interopRequireDefault(_storeConfig);
 
 	var _Object = __webpack_require__(2);
 
@@ -221,6 +252,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var shouldSubscribe = Boolean(mapStateToProps);
 	  var mapState = mapStateToProps || defaultMapStateToProps;
 	  var app = getApp();
+	  var storeName = _storeConfig2.default.get('name');
 
 	  var mapDispatch = void 0;
 	  if (typeof mapDispatchToProps === 'function') {
@@ -276,7 +308,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	    function onLoad(options) {
-	      this.store = app[_Provider.storeName];
+	      this.store = app[storeName];
 	      if (!this.store) {
 	        (0, _warning2.default)("Store对象不存在!");
 	      }
@@ -296,7 +328,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    return (0, _Object.assign)({}, pageConfig, mapDispatch(app[_Provider.storeName].dispatch), { onLoad: onLoad, onUnload: onUnload });
+	    return (0, _Object.assign)({}, pageConfig, mapDispatch(app[storeName].dispatch), { onLoad: onLoad, onUnload: onUnload });
 	  };
 	}
 
@@ -304,6 +336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var shouldSubscribe = Boolean(mapStateToProps);
 	  var mapState = mapStateToProps || defaultMapStateToProps;
 	  var app = getApp();
+	  var storeName = _storeConfig2.default.get('name');
 
 	  var mapDispatch = void 0;
 	  if (typeof mapDispatchToProps === 'function') {
@@ -323,10 +356,31 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      var state = this.store.getState();
 	      var mappedState = mapState(state, options);
-	      if (!this.data || (0, _shallowEqual2.default)(this.data, mappedState)) {
-	        return;
+
+	      if (!this.data || !mappedState || !Object.keys(mappedState)) return;
+	      // let isEqual = true;
+	      // for (let key in mappedState) {
+	      //   if (!deepEqual(this.data[key], mappedState[key])) {
+	      //     isEqual = false;
+	      //   }
+	      // }
+	      // if (isEqual) return;
+	      // this.setData(mappedState, () => {
+	      //   console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+	      //   console.log('after setData', Date.now())
+	      // });
+	      var originData = {};
+	      for (var key in mappedState) {
+	        originData[key] = this.data[key];
 	      }
-	      this.setData(mappedState);
+	      var diffResult = (0, _diff2.default)(mappedState, originData);
+	      // console.log('after diff', Date.now())
+	      if (Object.keys(diffResult).length === 0) return;
+	      var start = Date.now();
+	      this.setData(diffResult, function () {
+	        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+	        // console.log('after setData', Date.now())
+	      });
 	    }
 
 	    var _ready = componentConfig.ready,
@@ -334,7 +388,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	    function ready(options) {
-	      this.store = app[_Provider.storeName];
+	      this.store = app[storeName];
 	      if (!this.store) {
 	        (0, _warning2.default)("Store对象不存在!");
 	      }
@@ -354,7 +408,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    var methods = (0, _Object.assign)({}, componentConfig.methods || {}, mapDispatch(app[_Provider.storeName].dispatch));
+	    var methods = (0, _Object.assign)({}, componentConfig.methods || {}, mapDispatch(app[storeName].dispatch));
 
 	    return (0, _Object.assign)({}, componentConfig, { ready: ready, detached: detached, methods: methods });
 	  };
@@ -366,7 +420,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -439,7 +493,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// console.log(null === null)
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -565,7 +619,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -596,7 +650,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = shallowEqual;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports) {
 
 	'use strict';
