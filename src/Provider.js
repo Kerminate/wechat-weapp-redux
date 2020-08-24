@@ -2,8 +2,6 @@ import warning from './warning.js'
 import {assign} from './utils/Object.js'
 import storeConfig from './storeConfig.js'
 
-let storeName = 'store';
-
 function checkStoreShape(store) {
   const missingMethods = ['subscribe', 'dispatch', 'getState'].filter(m => !store.hasOwnProperty(m));
 

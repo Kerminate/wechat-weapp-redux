@@ -1,4 +1,6 @@
-let storeConfig = {};
+let storeConfig = {
+  name: 'store'
+};
 
 const customStoreConfig = {
   set(key, value) {

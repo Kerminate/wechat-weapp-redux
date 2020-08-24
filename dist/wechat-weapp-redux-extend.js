@@ -79,12 +79,14 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 1 */
 /***/ (function(module, exports) {
 
-	"use strict";
+	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var storeConfig = {};
+	var storeConfig = {
+	  name: 'store'
+	};
 
 	var customStoreConfig = {
 	  set: function set(key, value) {
@@ -183,8 +185,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-	var storeName = 'store';
-
 	function checkStoreShape(store) {
 	  var missingMethods = ['subscribe', 'dispatch', 'getState'].filter(function (m) {
 	    return !store.hasOwnProperty(m);
@@ -248,11 +248,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return { dispatch: dispatch };
 	};
 
-	function connectPage(mapStateToProps, mapDispatchToProps) {
+	function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
 	  var shouldSubscribe = Boolean(mapStateToProps);
 	  var mapState = mapStateToProps || defaultMapStateToProps;
 	  var app = getApp();
-	  var storeName = _storeConfig2.default.get('name');
+	  var storeName = name || _storeConfig2.default.get('name');
+	  if (!app[storeName]) {
+	    app[storeName] = store;
+	  }
 
 	  var mapDispatch = void 0;
 	  if (typeof mapDispatchToProps === 'function') {
@@ -293,10 +296,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        originData[key] = this.data[key];
 	      }
 	      var diffResult = (0, _diff2.default)(mappedState, originData);
+	      // TODO:深拷贝待优化
+	      var res = JSON.parse(JSON.stringify(diffResult));
 	      // console.log('after diff', Date.now())
-	      if (Object.keys(diffResult).length === 0) return;
+	      if (Object.keys(res).length === 0) return;
 	      var start = Date.now();
-	      this.setData(diffResult, function () {
+	      this.setData(res, function () {
 	        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
 	        // console.log('after setData', Date.now())
 	      });
@@ -332,11 +337,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	}
 
-	function connectComponent(mapStateToProps, mapDispatchToProps) {
+	function connectComponent(mapStateToProps, mapDispatchToProps, store, name) {
 	  var shouldSubscribe = Boolean(mapStateToProps);
 	  var mapState = mapStateToProps || defaultMapStateToProps;
 	  var app = getApp();
-	  var storeName = _storeConfig2.default.get('name');
+	  var storeName = name || _storeConfig2.default.get('name');
+	  if (!app[storeName]) {
+	    app[storeName] = store;
+	  }
 
 	  var mapDispatch = void 0;
 	  if (typeof mapDispatchToProps === 'function') {
@@ -373,11 +381,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	      for (var key in mappedState) {
 	        originData[key] = this.data[key];
 	      }
+	      // TODO:先糊上
+	      // if (!this.data || shallowEqual(this.data, mappedState)) {
+	      //   return;
+	      // }
+	      // this.setData(mappedState)
+	      // TODO:优化代码待检验
 	      var diffResult = (0, _diff2.default)(mappedState, originData);
+	      // TODO:深拷贝待优化
+	      var res = JSON.parse(JSON.stringify(diffResult));
 	      // console.log('after diff', Date.now())
-	      if (Object.keys(diffResult).length === 0) return;
+	      if (Object.keys(res).length === 0) return;
 	      var start = Date.now();
-	      this.setData(diffResult, function () {
+	      this.setData(res, function () {
 	        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
 	        // console.log('after setData', Date.now())
 	      });

@@ -9,11 +9,14 @@ import {assign} from './utils/Object.js'
 const defaultMapStateToProps = state => ({}) // eslint-disable-line no-unused-vars
 const defaultMapDispatchToProps = dispatch => ({dispatch})
 
-function connectPage(mapStateToProps, mapDispatchToProps) {
+function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
   const shouldSubscribe = Boolean(mapStateToProps)
   const mapState = mapStateToProps || defaultMapStateToProps
   const app = getApp();
-  const storeName = storeConfig.get('name');
+  const storeName = name || storeConfig.get('name');
+  if (!app[storeName]) {
+    app[storeName] = store;
+  }
 
   let mapDispatch
   if (typeof mapDispatchToProps === 'function') {
@@ -54,10 +57,12 @@ function connectPage(mapStateToProps, mapDispatchToProps) {
         originData[key] = this.data[key];
       }
       const diffResult = diff(mappedState, originData);
+      // TODO:深拷贝待优化
+      const res = JSON.parse(JSON.stringify(diffResult));
       // console.log('after diff', Date.now())
-      if (Object.keys(diffResult).length === 0) return;
+      if (Object.keys(res).length === 0) return;
       const start = Date.now();
-      this.setData(diffResult, () => {
+      this.setData(res, () => {
         // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
         // console.log('after setData', Date.now())
       });
@@ -94,11 +99,14 @@ function connectPage(mapStateToProps, mapDispatchToProps) {
   }
 }
 
-function connectComponent(mapStateToProps, mapDispatchToProps) {
+function connectComponent(mapStateToProps, mapDispatchToProps, store, name) {
   const shouldSubscribe = Boolean(mapStateToProps)
   const mapState = mapStateToProps || defaultMapStateToProps
   const app = getApp();
-  const storeName = storeConfig.get('name');
+  const storeName = name || storeConfig.get('name');
+  if (!app[storeName]) {
+    app[storeName] = store;
+  }
 
   let mapDispatch
   if (typeof mapDispatchToProps === 'function') {
@@ -135,11 +143,19 @@ function connectComponent(mapStateToProps, mapDispatchToProps) {
       for (let key in mappedState) {
         originData[key] = this.data[key];
       }
+      // TODO:先糊上
+      // if (!this.data || shallowEqual(this.data, mappedState)) {
+      //   return;
+      // }
+      // this.setData(mappedState)
+      // TODO:优化代码待检验
       const diffResult = diff(mappedState, originData);
+      // TODO:深拷贝待优化
+      const res = JSON.parse(JSON.stringify(diffResult));
       // console.log('after diff', Date.now())
-      if (Object.keys(diffResult).length === 0) return;
+      if (Object.keys(res).length === 0) return;
       const start = Date.now();
-      this.setData(diffResult, () => {
+      this.setData(res, () => {
         // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
         // console.log('after setData', Date.now())
       });
