@@ -105,6 +105,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
+	var getIn = function getIn(obj, path) {
+	    var defaultVal = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+	    var ret = path.reduce(function (xs, x) {
+	        return xs && xs[x] ? xs[x] : null;
+	    }, obj) || defaultVal;
+	    return ret;
+	};
+
 	var assign = function assign(target) {
 	    'use strict';
 	    // We must check against these specific cases.
@@ -128,6 +137,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	module.exports = {
+	    getIn: getIn,
 	    assign: assign
 	};
 
@@ -175,7 +185,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _warning2 = _interopRequireDefault(_warning);
 
-	var _Object = __webpack_require__(2);
+	var _utils = __webpack_require__(2);
 
 	var _storeConfig = __webpack_require__(1);
 
@@ -201,7 +211,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _storeConfig2.default.set('name', name);
 	  }
 	  return function (appConfig) {
-	    return (0, _Object.assign)({}, appConfig, _defineProperty({}, name, store));
+	    return (0, _utils.assign)({}, appConfig, _defineProperty({}, name, store));
 	  };
 	}
 
@@ -237,7 +247,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _storeConfig2 = _interopRequireDefault(_storeConfig);
 
-	var _Object = __webpack_require__(2);
+	var _utils = __webpack_require__(2);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -296,10 +306,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        originData[key] = this.data[key];
 	      }
 	      var diffResult = (0, _diff2.default)(mappedState, originData);
+	      if (Object.keys(diffResult).length === 0) return;
 	      // TODO:深拷贝待优化
 	      var res = JSON.parse(JSON.stringify(diffResult));
 	      // console.log('after diff', Date.now())
-	      if (Object.keys(res).length === 0) return;
 	      var start = Date.now();
 	      this.setData(res, function () {
 	        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
@@ -333,11 +343,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    return (0, _Object.assign)({}, pageConfig, mapDispatch(app[storeName].dispatch), { onLoad: onLoad, onUnload: onUnload });
+	    return (0, _utils.assign)({}, pageConfig, mapDispatch(app[storeName].dispatch), { onLoad: onLoad, onUnload: onUnload });
 	  };
 	}
 
-	function connectComponent(mapStateToProps, mapDispatchToProps, store, name) {
+	function connectComponent(mapStateToProps, mapDispatchToProps, store, name, actionDoneName) {
+	  var reducerDonePath = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : [];
+
 	  var shouldSubscribe = Boolean(mapStateToProps);
 	  var mapState = mapStateToProps || defaultMapStateToProps;
 	  var app = getApp();
@@ -357,15 +369,60 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  return function wrapWithConnect(componentConfig) {
 
+	    function actionDone(status) {
+	      var actions = mapDispatch(app[storeName].dispatch);
+	      Object.keys(actions).forEach(function (name) {
+	        if (name === actionDoneName) {
+	          actions[name](status);
+	        }
+	      });
+	    }
+
+	    function updateStart() {
+	      console.log('updateStart');
+	      if (actionDoneName) {
+	        actionDone(true);
+	      }
+	    }
+
+	    function updateEnd() {
+	      console.log('updateEnd');
+	      if (actionDoneName) {
+	        actionDone(false);
+	      }
+	    }
+
+	    function completeUpdate() {
+	      var array = [];
+	      var globalDiffStore = app[storeName].globalDiffStore || {};
+	      // console.log(globalDiffStore);
+	      Object.keys(globalDiffStore).forEach(function (key) {
+	        var diffConfig = globalDiffStore[key];
+	        array.push(new Promise(function () {
+	          return diffConfig.own.setData.call(diffConfig.own, diffConfig.data);
+	        }));
+	      });
+	      var newStore = (0, _utils.assign)({}, app[storeName], { globalDiffStore: {} });
+	      app[storeName] = newStore;
+	    }
+
 	    function handleChange(options) {
 	      if (!this.unsubscribe) {
 	        return;
 	      }
 
 	      var state = this.store.getState();
+	      // let isActionStart = false;
+	      // if (reducerDonePath && reducerDonePath.length > 0) {
+	      //   isActionStart = getIn(state, reducerDonePath);
+	      // }
+	      // const globalDiffStore = this.store.globalDiffStore || {};
+	      // const isManualUpdate = this.store.isManualUpdate || false;
 	      var mappedState = mapState(state, options);
 
 	      if (!this.data || !mappedState || !Object.keys(mappedState)) return;
+	      // console.log(isActionStart);
+	      // if (isActionStart) return;
 	      // let isEqual = true;
 	      // for (let key in mappedState) {
 	      //   if (!deepEqual(this.data[key], mappedState[key])) {
@@ -389,14 +446,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // TODO:优化代码待检验
 	      var diffResult = (0, _diff2.default)(mappedState, originData);
 	      // TODO:深拷贝待优化
-	      var res = JSON.parse(JSON.stringify(diffResult));
 	      // console.log('after diff', Date.now())
-	      if (Object.keys(res).length === 0) return;
+	      // if (Object.keys(diffResult).length === 0 && Object.keys(globalDiffStore) === 0) return;
+	      if (Object.keys(diffResult).length === 0) return;
+	      var res = JSON.parse(JSON.stringify(diffResult));
+	      // console.log(res);
+	      // if (isActionStart) {
+	      //   // 需手动通过 update 更新
+	      //   // console.log(globalDiffStore);
+	      //   if (globalDiffStore[this.is]) {
+	      //     const newDiff = assign({}, globalDiffStore[this.is].data, res);
+	      //     globalDiffStore[this.is].data = newDiff;
+	      //   } else {
+	      //     globalDiffStore[this.is] = {
+	      //       own: this,
+	      //       data: res
+	      //     }
+	      //   }
+	      //   // console.log(globalDiffStore);
+	      //   // console.log(this.store);
+	      //   this.store.globalDiffStore = globalDiffStore;
+	      //   // console.log(this.store)
+	      // } else {
+	      //   if (Object.keys(globalDiffStore).length > 0) {
+	      //     completeUpdate();
+	      //   } else {
 	      var start = Date.now();
 	      this.setData(res, function () {
 	        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
 	        // console.log('after setData', Date.now())
 	      });
+	      //   }
+	      // }
 	    }
 
 	    var _ready = componentConfig.ready,
@@ -424,9 +505,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    var methods = (0, _Object.assign)({}, componentConfig.methods || {}, mapDispatch(app[storeName].dispatch));
+	    var methods = (0, _utils.assign)({}, componentConfig.methods || {}, mapDispatch(app[storeName].dispatch), { updateStart: updateStart, updateEnd: updateEnd });
 
-	    return (0, _Object.assign)({}, componentConfig, { ready: ready, detached: detached, methods: methods });
+	    return (0, _utils.assign)({}, componentConfig, { ready: ready, detached: detached, methods: methods });
 	  };
 	}
 
@@ -523,10 +604,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	var FUNCTIONTYPE = '[object Function]';
 
 	function diff(current, pre) {
+	  // function diff(current, pre) {
 	  var result = {};
 	  syncKeys(current, pre);
 	  _diff(current, pre, '', result);
 	  return result;
+	}
+
+	function lackKey(current, pre) {
+	  for (var key in pre) {
+	    if (current[key] === undefined && pre[key] !== undefined) {
+	      return true;
+	    }
+	  }
+	  return false;
 	}
 
 	function syncKeys(current, pre) {
@@ -534,16 +625,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var rootCurrentType = type(current);
 	  var rootPreType = type(pre);
 	  if (rootCurrentType == OBJECTTYPE && rootPreType == OBJECTTYPE) {
-	    //if(Object.keys(current).length >= Object.keys(pre).length){
-	    for (var key in pre) {
-	      var currentValue = current[key];
-	      if (currentValue === undefined) {
-	        current[key] = null;
-	      } else {
+	    if (!lackKey(current, pre)) {
+	      for (var key in pre) {
+	        var currentValue = current[key];
+	        // if (currentValue === undefined) {
+	        //   current[key] = null
+	        // } else {
 	        syncKeys(currentValue, pre[key]);
+	        // }
 	      }
 	    }
-	    //}
 	  } else if (rootCurrentType == ARRAYTYPE && rootPreType == ARRAYTYPE) {
 	    if (current.length >= pre.length) {
 	      pre.forEach(function (item, index) {
@@ -558,7 +649,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var rootCurrentType = type(current);
 	  var rootPreType = type(pre);
 	  if (rootCurrentType == OBJECTTYPE) {
-	    if (rootPreType != OBJECTTYPE || Object.keys(current).length < Object.keys(pre).length && path !== '') {
+	    // if (rootPreType != OBJECTTYPE || Object.keys(current).length < Object.keys(pre).length && path !== '') {
+	    if (rootPreType != OBJECTTYPE || lackKey(current, pre) && path !== '') {
 	      setResult(result, path, current);
 	    } else {
 	      var _loop = function _loop(key) {
@@ -583,7 +675,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	          }
 	        } else if (currentType == OBJECTTYPE) {
-	          if (preType != OBJECTTYPE || Object.keys(currentValue).length < Object.keys(preValue).length) {
+	          // if (preType != OBJECTTYPE || Object.keys(currentValue).length < Object.keys(preValue).length) {
+	          if (preType != OBJECTTYPE || lackKey(currentValue, preValue)) {
 	            setResult(result, concatPathAndKey(path, key), currentValue);
 	          } else {
 	            for (var subKey in currentValue) {
@@ -623,7 +716,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var t = type(v);
 	  if (t != FUNCTIONTYPE) {
 	    //if (t != OBJECTTYPE && t != ARRAYTYPE) {
-	    result[k] = v;
+	    if (k === '') {
+	      for (var key in v) {
+	        result[key] = v[key];
+	      }
+	    } else {
+	      result[k] = v;
+	    }
 	    // } else {
 	    //     result[k] = JSON.parse(JSON.stringify(v))
 	    // }
@@ -633,6 +732,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	function type(obj) {
 	  return Object.prototype.toString.call(obj);
 	}
+
+	var res1 = diff({ a: { b: 1 } }, {});
+	console.log(res1);
+	var res2 = diff({}, { a: { b: 1 } });
+	console.log(res2);
+	var res3 = diff({ a: {}, aa: 2 }, { a: { b: 1 }, aa: 1 });
+	console.log(res3);
+	var res4 = diff({ a: { 1: [2], 2: [4] } }, { a: { 2: [3, 4], 3: [2] } });
+	console.log(res4);
+	var res5 = diff({ a: 2 }, { a: 3, b: 4 });
+	console.log(res5);
+	var res6 = diff({ a: 2, c: 1 }, { a: 3, b: 4 });
+	console.log(res6);
+	var res7 = diff({ a: { b: 1 } }, { a: 2 });
+	console.log(res7);
+	var res8 = diff({ a: { b: 1, d: 3, f: 2 } }, { a: { b: 1, c: 2, e: 4 } });
+	console.log(res8);
 
 /***/ }),
 /* 8 */

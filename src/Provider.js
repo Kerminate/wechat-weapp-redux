@@ -1,5 +1,5 @@
 import warning from './warning.js'
-import {assign} from './utils/Object.js'
+import { assign } from './utils.js'
 import storeConfig from './storeConfig.js'
 
 function checkStoreShape(store) {

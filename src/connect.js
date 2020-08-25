@@ -4,7 +4,7 @@ import diff from "./diff.js";
 import warning from './warning.js'
 import wrapActionCreators from './wrapActionCreators.js'
 import storeConfig from './storeConfig.js'
-import {assign} from './utils/Object.js'
+import { getIn, assign } from './utils.js'
 
 const defaultMapStateToProps = state => ({}) // eslint-disable-line no-unused-vars
 const defaultMapDispatchToProps = dispatch => ({dispatch})
@@ -57,10 +57,10 @@ function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
         originData[key] = this.data[key];
       }
       const diffResult = diff(mappedState, originData);
+      if (Object.keys(diffResult).length === 0) return;
       // TODO:深拷贝待优化
       const res = JSON.parse(JSON.stringify(diffResult));
       // console.log('after diff', Date.now())
-      if (Object.keys(res).length === 0) return;
       const start = Date.now();
       this.setData(res, () => {
         // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
@@ -99,7 +99,7 @@ function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
   }
 }
 
-function connectComponent(mapStateToProps, mapDispatchToProps, store, name) {
+function connectComponent(mapStateToProps, mapDispatchToProps, store, name, actionDoneName, reducerDonePath = []) {
   const shouldSubscribe = Boolean(mapStateToProps)
   const mapState = mapStateToProps || defaultMapStateToProps
   const app = getApp();
@@ -119,15 +119,58 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name) {
 
   return function wrapWithConnect(componentConfig) {
 
+    function actionDone(status) {
+      const actions = mapDispatch(app[storeName].dispatch);
+      Object.keys(actions).forEach(name => {
+        if (name === actionDoneName) {
+          actions[name](status);
+        }
+      });
+    }
+
+    function updateStart() {
+      console.log('updateStart');
+      if (actionDoneName) {
+        actionDone(true);
+      }
+    }
+
+    function updateEnd() {
+      console.log('updateEnd')
+      if (actionDoneName) {
+        actionDone(false);
+      }
+    }
+
+    function completeUpdate() {
+      const array = [];
+      const globalDiffStore = app[storeName].globalDiffStore || {};
+      // console.log(globalDiffStore);
+      Object.keys(globalDiffStore).forEach(key => {
+        const diffConfig = globalDiffStore[key];
+        array.push(new Promise(() => diffConfig.own.setData.call(diffConfig.own, diffConfig.data)));
+      })
+      const newStore = assign({}, app[storeName], { globalDiffStore: {} });
+      app[storeName] = newStore;
+    }
+
     function handleChange(options) {
       if (!this.unsubscribe) {
         return
       }
 
-      const state = this.store.getState()
+      const state = this.store.getState();
+      // let isActionStart = false;
+      // if (reducerDonePath && reducerDonePath.length > 0) {
+      //   isActionStart = getIn(state, reducerDonePath);
+      // }
+      // const globalDiffStore = this.store.globalDiffStore || {};
+      // const isManualUpdate = this.store.isManualUpdate || false;
       const mappedState = mapState(state, options);
 
       if (!this.data || !mappedState || !Object.keys(mappedState)) return;
+      // console.log(isActionStart);
+      // if (isActionStart) return;
       // let isEqual = true;
       // for (let key in mappedState) {
       //   if (!deepEqual(this.data[key], mappedState[key])) {
@@ -151,14 +194,38 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name) {
       // TODO:优化代码待检验
       const diffResult = diff(mappedState, originData);
       // TODO:深拷贝待优化
-      const res = JSON.parse(JSON.stringify(diffResult));
       // console.log('after diff', Date.now())
-      if (Object.keys(res).length === 0) return;
-      const start = Date.now();
-      this.setData(res, () => {
-        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
-        // console.log('after setData', Date.now())
-      });
+      // if (Object.keys(diffResult).length === 0 && Object.keys(globalDiffStore) === 0) return;
+      if (Object.keys(diffResult).length === 0) return;
+      const res = JSON.parse(JSON.stringify(diffResult));
+      // console.log(res);
+      // if (isActionStart) {
+      //   // 需手动通过 update 更新
+      //   // console.log(globalDiffStore);
+      //   if (globalDiffStore[this.is]) {
+      //     const newDiff = assign({}, globalDiffStore[this.is].data, res);
+      //     globalDiffStore[this.is].data = newDiff;
+      //   } else {
+      //     globalDiffStore[this.is] = {
+      //       own: this,
+      //       data: res
+      //     }
+      //   }
+      //   // console.log(globalDiffStore);
+      //   // console.log(this.store);
+      //   this.store.globalDiffStore = globalDiffStore;
+      //   // console.log(this.store)
+      // } else {
+      //   if (Object.keys(globalDiffStore).length > 0) {
+      //     completeUpdate();
+      //   } else {
+          const start = Date.now();
+          this.setData(res, () => {
+            // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+            // console.log('after setData', Date.now())
+          });
+      //   }
+      // }
     }
 
     const {
@@ -187,8 +254,7 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name) {
       typeof this.unsubscribe === 'function' && this.unsubscribe()
     }
 
-
-    const methods = assign({}, componentConfig.methods || {}, mapDispatch(app[storeName].dispatch));
+    const methods = assign({}, componentConfig.methods || {}, mapDispatch(app[storeName].dispatch), { updateStart, updateEnd });
 
     return assign({}, componentConfig, { ready, detached, methods })
   }

@@ -1,15 +1,16 @@
 {
   "name": "wechat-weapp-redux-extend",
-  "version": "0.1.30",
+  "version": "0.2.12",
   "description": "Wechat weapp redux bindings",
   "main": "dist/wechat-weapp-redux-extend.js",
   "scripts": {
     "clean": "rimraf lib",
+    "test": "jest",
+    "cov": "jest --coverage",
     "build:lib": "babel src --out-dir lib",
     "build:umd": "NODE_ENV=development webpack src/index.js dist/wechat-weapp-redux-extend.js",
     "build:umd:min": "NODE_ENV=production webpack src/index.js dist/wechat-weapp-redux-extend.min.js",
     "build": "npm run build:lib && npm run build:umd && npm run build:umd:min",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "npm run clean && npm run build"
   },
   "author": "",
@@ -22,10 +23,13 @@
   "devDependencies": {
     "babel-cli": "^6.16.0",
     "babel-core": "^6.16.0",
+    "babel-jest": "^26.3.0",
     "babel-loader": "^6.2.5",
     "babel-plugin-transform-class-properties": "^6.16.0",
     "babel-plugin-transform-object-rest-spread": "^6.16.0",
+    "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.16.0",
+    "jest": "^26.4.2",
     "rimraf": "^2.5.4",
     "webpack": "^1.13.2"
   }
