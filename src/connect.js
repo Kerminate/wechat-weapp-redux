@@ -130,21 +130,18 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name, acti
 
     function updateStart() {
       console.log('updateStart');
-      if (actionDoneName) {
-        actionDone(true);
-      }
+      actionDone(true);
     }
 
     function updateEnd() {
       console.log('updateEnd')
-      if (actionDoneName) {
-        actionDone(false);
-      }
+      actionDone(false);
     }
 
     function completeUpdate() {
       const array = [];
       const globalDiffStore = app[storeName].globalDiffStore || {};
+      // const globalDiffStore = app.globalDiffStore || {};
       // console.log(globalDiffStore);
       Object.keys(globalDiffStore).forEach(key => {
         const diffConfig = globalDiffStore[key];
@@ -152,6 +149,7 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name, acti
       })
       const newStore = assign({}, app[storeName], { globalDiffStore: {} });
       app[storeName] = newStore;
+      // app.globalDiffStore = {};
     }
 
     function handleChange(options) {
@@ -165,56 +163,42 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name, acti
       //   isActionStart = getIn(state, reducerDonePath);
       // }
       // const globalDiffStore = this.store.globalDiffStore || {};
-      // const isManualUpdate = this.store.isManualUpdate || false;
       const mappedState = mapState(state, options);
 
       if (!this.data || !mappedState || !Object.keys(mappedState)) return;
       // console.log(isActionStart);
       // if (isActionStart) return;
-      // let isEqual = true;
-      // for (let key in mappedState) {
-      //   if (!deepEqual(this.data[key], mappedState[key])) {
-      //     isEqual = false;
-      //   }
-      // }
-      // if (isEqual) return;
-      // this.setData(mappedState, () => {
-      //   console.log('%c setData 耗时', "color: yellow", Date.now() - start);
-      //   console.log('after setData', Date.now())
-      // });
       const originData = {};
       for (let key in mappedState) {
         originData[key] = this.data[key];
       }
-      // TODO:先糊上
-      // if (!this.data || shallowEqual(this.data, mappedState)) {
-      //   return;
-      // }
-      // this.setData(mappedState)
       // TODO:优化代码待检验
       const diffResult = diff(mappedState, originData);
+      console.log(diffResult);
       // TODO:深拷贝待优化
       // console.log('after diff', Date.now())
-      // if (Object.keys(diffResult).length === 0 && Object.keys(globalDiffStore) === 0) return;
+      // if (Object.keys(diffResult).length === 0 && (!globalDiffStore || Object.keys(globalDiffStore).length === 0)) return;
       if (Object.keys(diffResult).length === 0) return;
       const res = JSON.parse(JSON.stringify(diffResult));
-      // console.log(res);
+      console.log(res);
       // if (isActionStart) {
       //   // 需手动通过 update 更新
-      //   // console.log(globalDiffStore);
+      //   console.log(globalDiffStore);
       //   if (globalDiffStore[this.is]) {
       //     const newDiff = assign({}, globalDiffStore[this.is].data, res);
       //     globalDiffStore[this.is].data = newDiff;
+      //     // const oldData = globalDiffStore[this.is].data || {};
+      //     // globalDiffStore[this.is] = assign(oldData, res);
       //   } else {
       //     globalDiffStore[this.is] = {
       //       own: this,
       //       data: res
       //     }
       //   }
-      //   // console.log(globalDiffStore);
+      //   console.log(globalDiffStore);
       //   // console.log(this.store);
       //   this.store.globalDiffStore = globalDiffStore;
-      //   // console.log(this.store)
+      //   console.log(this.store)
       // } else {
       //   if (Object.keys(globalDiffStore).length > 0) {
       //     completeUpdate();

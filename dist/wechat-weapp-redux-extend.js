@@ -380,21 +380,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    function updateStart() {
 	      console.log('updateStart');
-	      if (actionDoneName) {
-	        actionDone(true);
-	      }
+	      actionDone(true);
 	    }
 
 	    function updateEnd() {
 	      console.log('updateEnd');
-	      if (actionDoneName) {
-	        actionDone(false);
-	      }
+	      actionDone(false);
 	    }
 
 	    function completeUpdate() {
 	      var array = [];
 	      var globalDiffStore = app[storeName].globalDiffStore || {};
+	      // const globalDiffStore = app.globalDiffStore || {};
 	      // console.log(globalDiffStore);
 	      Object.keys(globalDiffStore).forEach(function (key) {
 	        var diffConfig = globalDiffStore[key];
@@ -404,6 +401,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	      var newStore = (0, _utils.assign)({}, app[storeName], { globalDiffStore: {} });
 	      app[storeName] = newStore;
+	      // app.globalDiffStore = {};
 	    }
 
 	    function handleChange(options) {
@@ -417,56 +415,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	      //   isActionStart = getIn(state, reducerDonePath);
 	      // }
 	      // const globalDiffStore = this.store.globalDiffStore || {};
-	      // const isManualUpdate = this.store.isManualUpdate || false;
 	      var mappedState = mapState(state, options);
 
 	      if (!this.data || !mappedState || !Object.keys(mappedState)) return;
 	      // console.log(isActionStart);
 	      // if (isActionStart) return;
-	      // let isEqual = true;
-	      // for (let key in mappedState) {
-	      //   if (!deepEqual(this.data[key], mappedState[key])) {
-	      //     isEqual = false;
-	      //   }
-	      // }
-	      // if (isEqual) return;
-	      // this.setData(mappedState, () => {
-	      //   console.log('%c setData 耗时', "color: yellow", Date.now() - start);
-	      //   console.log('after setData', Date.now())
-	      // });
 	      var originData = {};
 	      for (var key in mappedState) {
 	        originData[key] = this.data[key];
 	      }
-	      // TODO:先糊上
-	      // if (!this.data || shallowEqual(this.data, mappedState)) {
-	      //   return;
-	      // }
-	      // this.setData(mappedState)
 	      // TODO:优化代码待检验
 	      var diffResult = (0, _diff2.default)(mappedState, originData);
+	      console.log(diffResult);
 	      // TODO:深拷贝待优化
 	      // console.log('after diff', Date.now())
-	      // if (Object.keys(diffResult).length === 0 && Object.keys(globalDiffStore) === 0) return;
+	      // if (Object.keys(diffResult).length === 0 && (!globalDiffStore || Object.keys(globalDiffStore).length === 0)) return;
 	      if (Object.keys(diffResult).length === 0) return;
 	      var res = JSON.parse(JSON.stringify(diffResult));
-	      // console.log(res);
+	      console.log(res);
 	      // if (isActionStart) {
 	      //   // 需手动通过 update 更新
-	      //   // console.log(globalDiffStore);
+	      //   console.log(globalDiffStore);
 	      //   if (globalDiffStore[this.is]) {
 	      //     const newDiff = assign({}, globalDiffStore[this.is].data, res);
 	      //     globalDiffStore[this.is].data = newDiff;
+	      //     // const oldData = globalDiffStore[this.is].data || {};
+	      //     // globalDiffStore[this.is] = assign(oldData, res);
 	      //   } else {
 	      //     globalDiffStore[this.is] = {
 	      //       own: this,
 	      //       data: res
 	      //     }
 	      //   }
-	      //   // console.log(globalDiffStore);
+	      //   console.log(globalDiffStore);
 	      //   // console.log(this.store);
 	      //   this.store.globalDiffStore = globalDiffStore;
-	      //   // console.log(this.store)
+	      //   console.log(this.store)
 	      // } else {
 	      //   if (Object.keys(globalDiffStore).length > 0) {
 	      //     completeUpdate();
@@ -733,22 +717,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return Object.prototype.toString.call(obj);
 	}
 
-	var res1 = diff({ a: { b: 1 } }, {});
-	console.log(res1);
-	var res2 = diff({}, { a: { b: 1 } });
-	console.log(res2);
-	var res3 = diff({ a: {}, aa: 2 }, { a: { b: 1 }, aa: 1 });
-	console.log(res3);
-	var res4 = diff({ a: { 1: [2], 2: [4] } }, { a: { 2: [3, 4], 3: [2] } });
-	console.log(res4);
-	var res5 = diff({ a: 2 }, { a: 3, b: 4 });
-	console.log(res5);
-	var res6 = diff({ a: 2, c: 1 }, { a: 3, b: 4 });
-	console.log(res6);
-	var res7 = diff({ a: { b: 1 } }, { a: 2 });
-	console.log(res7);
-	var res8 = diff({ a: { b: 1, d: 3, f: 2 } }, { a: { b: 1, c: 2, e: 4 } });
-	console.log(res8);
+	// const res1 = diff({a: { b: 1}}, {});
+	// console.log(res1)
+	// const res2 = diff({}, {a: { b: 1}});
+	// console.log(res2)
+	// const res3 = diff({a: {}, aa: 2}, {a: { b: 1}, aa: 1});
+	// console.log(res3)
+	// const res4 = diff({a: {1: [2], 2: [4]} }, {a: {2: [3,4], 3: [2]}})
+	// console.log(res4)
+	// const res5 = diff({a: 2}, {a:3, b: 4})
+	// console.log(res5)
+	// const res6 = diff({a: 2, c: 1}, {a:3, b: 4})
+	// console.log(res6)
+	// const res7 = diff({a: {b: 1}}, {a: 2})
+	// console.log(res7)
+	// const res8 = diff({a: {b: 1, d: 3, f: 2 }}, {a: {b: 1, c: 2, e: 4}})
+	// console.log(res8)
 
 /***/ }),
 /* 8 */

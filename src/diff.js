@@ -130,19 +130,19 @@ function type(obj) {
   return Object.prototype.toString.call(obj)
 }
 
-const res1 = diff({a: { b: 1}}, {});
-console.log(res1)
-const res2 = diff({}, {a: { b: 1}});
-console.log(res2)
-const res3 = diff({a: {}, aa: 2}, {a: { b: 1}, aa: 1});
-console.log(res3)
-const res4 = diff({a: {1: [2], 2: [4]} }, {a: {2: [3,4], 3: [2]}})
-console.log(res4)
-const res5 = diff({a: 2}, {a:3, b: 4})
-console.log(res5)
-const res6 = diff({a: 2, c: 1}, {a:3, b: 4})
-console.log(res6)
-const res7 = diff({a: {b: 1}}, {a: 2})
-console.log(res7)
-const res8 = diff({a: {b: 1, d: 3, f: 2 }}, {a: {b: 1, c: 2, e: 4}})
-console.log(res8)
+// const res1 = diff({a: { b: 1}}, {});
+// console.log(res1)
+// const res2 = diff({}, {a: { b: 1}});
+// console.log(res2)
+// const res3 = diff({a: {}, aa: 2}, {a: { b: 1}, aa: 1});
+// console.log(res3)
+// const res4 = diff({a: {1: [2], 2: [4]} }, {a: {2: [3,4], 3: [2]}})
+// console.log(res4)
+// const res5 = diff({a: 2}, {a:3, b: 4})
+// console.log(res5)
+// const res6 = diff({a: 2, c: 1}, {a:3, b: 4})
+// console.log(res6)
+// const res7 = diff({a: {b: 1}}, {a: 2})
+// console.log(res7)
+// const res8 = diff({a: {b: 1, d: 3, f: 2 }}, {a: {b: 1, c: 2, e: 4}})
+// console.log(res8)
