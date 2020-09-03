@@ -1,10 +1,10 @@
-import shallowEqual from './shallowEqual.js'
+// import shallowEqual from './shallowEqual.js'
 import deepEqual from './deepEqual.js'
 import diff from "./diff.js";
 import warning from './warning.js'
 import wrapActionCreators from './wrapActionCreators.js'
 import storeConfig from './storeConfig.js'
-import { getIn, assign } from './utils.js'
+import { getIn, assign, isNeedDelay } from './utils.js'
 
 const defaultMapStateToProps = state => ({}) // eslint-disable-line no-unused-vars
 const defaultMapDispatchToProps = dispatch => ({dispatch})
@@ -12,12 +12,13 @@ const defaultMapDispatchToProps = dispatch => ({dispatch})
 function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
   const shouldSubscribe = Boolean(mapStateToProps)
   const mapState = mapStateToProps || defaultMapStateToProps
-  const app = getApp();
+  const app = typeof getApp === 'function' && getApp({ allowDefault: true });
   const storeName = name || storeConfig.get('name');
   if (!app[storeName]) {
     app[storeName] = store;
   }
 
+  let time
   let mapDispatch
   if (typeof mapDispatchToProps === 'function') {
     mapDispatch = mapDispatchToProps
@@ -60,12 +61,23 @@ function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
       if (Object.keys(diffResult).length === 0) return;
       // TODO:深拷贝待优化
       const res = JSON.parse(JSON.stringify(diffResult));
-      // console.log('after diff', Date.now())
-      const start = Date.now();
-      this.setData(res, () => {
-        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
-        // console.log('after setData', Date.now())
-      });
+      if (isNeedDelay(res)) {
+        if (time) clearTimeout();
+        time = setTimeout(() => {
+          const start = Date.now();
+          this.setData(res, () => {
+            // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+            // console.log('after setData', Date.now())
+          });
+        }, 200)
+      } else {
+        // console.log('after diff', Date.now())
+        const start = Date.now();
+        this.setData(res, () => {
+          // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+          // console.log('after setData', Date.now())
+        });
+      }
       // console.log('after deepequal', Date.now())
     }
 
@@ -102,7 +114,7 @@ function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
 function connectComponent(mapStateToProps, mapDispatchToProps, store, name, actionDoneName, reducerDonePath = []) {
   const shouldSubscribe = Boolean(mapStateToProps)
   const mapState = mapStateToProps || defaultMapStateToProps
-  const app = getApp();
+  const app = typeof getApp === 'function' && getApp({ allowDefault: true });
   const storeName = name || storeConfig.get('name');
   if (!app[storeName]) {
     app[storeName] = store;
@@ -174,13 +186,13 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name, acti
       }
       // TODO:优化代码待检验
       const diffResult = diff(mappedState, originData);
-      console.log(diffResult);
+      // console.log(diffResult);
       // TODO:深拷贝待优化
       // console.log('after diff', Date.now())
       // if (Object.keys(diffResult).length === 0 && (!globalDiffStore || Object.keys(globalDiffStore).length === 0)) return;
       if (Object.keys(diffResult).length === 0) return;
       const res = JSON.parse(JSON.stringify(diffResult));
-      console.log(res);
+      // console.log(res);
       // if (isActionStart) {
       //   // 需手动通过 update 更新
       //   console.log(globalDiffStore);

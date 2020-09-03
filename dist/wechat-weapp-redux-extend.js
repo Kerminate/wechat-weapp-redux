@@ -106,39 +106,52 @@ return /******/ (function(modules) { // webpackBootstrap
 	'use strict';
 
 	var getIn = function getIn(obj, path) {
-	    var defaultVal = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+	  var defaultVal = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
-	    var ret = path.reduce(function (xs, x) {
-	        return xs && xs[x] ? xs[x] : null;
-	    }, obj) || defaultVal;
-	    return ret;
+	  var ret = path.reduce(function (xs, x) {
+	    return xs && xs[x] ? xs[x] : null;
+	  }, obj) || defaultVal;
+	  return ret;
 	};
 
 	var assign = function assign(target) {
-	    'use strict';
-	    // We must check against these specific cases.
+	  'use strict';
+	  // We must check against these specific cases.
 
-	    if (target === undefined || target === null) {
-	        throw new TypeError('Cannot convert undefined or null to object');
-	    }
+	  if (target === undefined || target === null) {
+	    throw new TypeError('Cannot convert undefined or null to object');
+	  }
 
-	    var output = Object(target);
-	    for (var index = 1; index < arguments.length; index++) {
-	        var source = arguments[index];
-	        if (source !== undefined && source !== null) {
-	            for (var nextKey in source) {
-	                if (source.hasOwnProperty(nextKey)) {
-	                    output[nextKey] = source[nextKey];
-	                }
-	            }
+	  var output = Object(target);
+	  for (var index = 1; index < arguments.length; index++) {
+	    var source = arguments[index];
+	    if (source !== undefined && source !== null) {
+	      for (var nextKey in source) {
+	        if (source.hasOwnProperty(nextKey)) {
+	          output[nextKey] = source[nextKey];
 	        }
+	      }
 	    }
-	    return output;
+	  }
+	  return output;
+	};
+
+	var isNeedDelay = function isNeedDelay(diff, point) {
+	  var isNeed = true;
+	  Object.keys(diff).forEach(function (key) {
+	    // TODO: 支持变量引入
+	    // const reg = new RegExp(`\/\.${point}(\[\d+\])?$\/`);
+	    if (!/\.userAvatars(\[\d+\])?$/.test(key)) {
+	      isNeed = false;
+	    }
+	  });
+	  return isNeed;
 	};
 
 	module.exports = {
-	    getIn: getIn,
-	    assign: assign
+	  getIn: getIn,
+	  assign: assign,
+	  isNeedDelay: isNeedDelay
 	};
 
 /***/ }),
@@ -223,10 +236,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var _shallowEqual = __webpack_require__(8);
-
-	var _shallowEqual2 = _interopRequireDefault(_shallowEqual);
-
 	var _deepEqual = __webpack_require__(6);
 
 	var _deepEqual2 = _interopRequireDefault(_deepEqual);
@@ -239,7 +248,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _warning2 = _interopRequireDefault(_warning);
 
-	var _wrapActionCreators = __webpack_require__(9);
+	var _wrapActionCreators = __webpack_require__(8);
 
 	var _wrapActionCreators2 = _interopRequireDefault(_wrapActionCreators);
 
@@ -251,6 +260,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	// import shallowEqual from './shallowEqual.js'
 	var defaultMapStateToProps = function defaultMapStateToProps(state) {
 	  return {};
 	}; // eslint-disable-line no-unused-vars
@@ -261,12 +271,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
 	  var shouldSubscribe = Boolean(mapStateToProps);
 	  var mapState = mapStateToProps || defaultMapStateToProps;
-	  var app = getApp();
+	  var app = typeof getApp === 'function' && getApp({ allowDefault: true });
 	  var storeName = name || _storeConfig2.default.get('name');
 	  if (!app[storeName]) {
 	    app[storeName] = store;
 	  }
 
+	  var time = void 0;
 	  var mapDispatch = void 0;
 	  if (typeof mapDispatchToProps === 'function') {
 	    mapDispatch = mapDispatchToProps;
@@ -279,6 +290,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return function wrapWithConnect(pageConfig) {
 
 	    function handleChange(options) {
+	      var _this = this;
+
 	      // console.log(" %c dispatch 触发","color:red");
 	      if (!this.unsubscribe) {
 	        return;
@@ -309,12 +322,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (Object.keys(diffResult).length === 0) return;
 	      // TODO:深拷贝待优化
 	      var res = JSON.parse(JSON.stringify(diffResult));
-	      // console.log('after diff', Date.now())
-	      var start = Date.now();
-	      this.setData(res, function () {
-	        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
-	        // console.log('after setData', Date.now())
-	      });
+	      if ((0, _utils.isNeedDelay)(res)) {
+	        if (time) clearTimeout();
+	        time = setTimeout(function () {
+	          var start = Date.now();
+	          _this.setData(res, function () {
+	            // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+	            // console.log('after setData', Date.now())
+	          });
+	        }, 200);
+	      } else {
+	        // console.log('after diff', Date.now())
+	        var start = Date.now();
+	        this.setData(res, function () {
+	          // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+	          // console.log('after setData', Date.now())
+	        });
+	      }
 	      // console.log('after deepequal', Date.now())
 	    }
 
@@ -352,7 +376,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  var shouldSubscribe = Boolean(mapStateToProps);
 	  var mapState = mapStateToProps || defaultMapStateToProps;
-	  var app = getApp();
+	  var app = typeof getApp === 'function' && getApp({ allowDefault: true });
 	  var storeName = name || _storeConfig2.default.get('name');
 	  if (!app[storeName]) {
 	    app[storeName] = store;
@@ -426,13 +450,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      // TODO:优化代码待检验
 	      var diffResult = (0, _diff2.default)(mappedState, originData);
-	      console.log(diffResult);
+	      // console.log(diffResult);
 	      // TODO:深拷贝待优化
 	      // console.log('after diff', Date.now())
 	      // if (Object.keys(diffResult).length === 0 && (!globalDiffStore || Object.keys(globalDiffStore).length === 0)) return;
 	      if (Object.keys(diffResult).length === 0) return;
 	      var res = JSON.parse(JSON.stringify(diffResult));
-	      console.log(res);
+	      // console.log(res);
 	      // if (isActionStart) {
 	      //   // 需手动通过 update 更新
 	      //   console.log(globalDiffStore);
@@ -736,37 +760,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ }),
 /* 8 */
-/***/ (function(module, exports) {
-
-	"use strict";
-
-	function shallowEqual(objA, objB) {
-	  if (objA === objB) {
-	    return true;
-	  }
-
-	  var keysA = Object.keys(objA);
-	  var keysB = Object.keys(objB);
-
-	  if (keysA.length !== keysB.length) {
-	    return false;
-	  }
-
-	  // Test for A's keys different from B.
-	  var hasOwn = Object.prototype.hasOwnProperty;
-	  for (var i = 0; i < keysA.length; i++) {
-	    if (!hasOwn.call(objB, keysA[i]) || objA[keysA[i]] !== objB[keysA[i]]) {
-	      return false;
-	    }
-	  }
-
-	  return true;
-	}
-
-	module.exports = shallowEqual;
-
-/***/ }),
-/* 9 */
 /***/ (function(module, exports) {
 
 	'use strict';

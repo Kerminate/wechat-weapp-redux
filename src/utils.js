@@ -24,7 +24,20 @@ const assign = function (target) {
   return output;
 };
 
+const isNeedDelay = (diff, point) => {
+  let isNeed = true;
+  Object.keys(diff).forEach(key => {
+    // TODO: 支持变量引入
+    // const reg = new RegExp(`\/\.${point}(\[\d+\])?$\/`);
+    if (!/\.userAvatars(\[\d+\])?$/.test(key)) {
+      isNeed = false;
+    }
+  })
+  return isNeed;
+}
+
 module.exports = {
   getIn: getIn,
-  assign: assign
+  assign: assign,
+  isNeedDelay: isNeedDelay,
 }
