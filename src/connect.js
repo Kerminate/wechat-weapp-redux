@@ -42,17 +42,6 @@ function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
       const mappedState = mapState(state, options);
       // console.log('after mapState', Date.now())
       if (!this.data || !mappedState || !Object.keys(mappedState)) return;
-      // let isEqual = true;
-      // for (let key in mappedState) {
-      //   if (!deepEqual(this.data[key], mappedState[key])) {
-      //     isEqual = false;
-      //   }
-      // }
-      // if (isEqual) return;
-      // this.setData(mappedState, () => {
-      //   console.log('%c setData 耗时', "color: yellow", Date.now() - start);
-      //   console.log('after setData', Date.now())
-      // });
       const originData = {};
       for (let key in mappedState) {
         originData[key] = this.data[key];
@@ -61,16 +50,8 @@ function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
       if (Object.keys(diffResult).length === 0) return;
       // TODO:深拷贝待优化
       const res = JSON.parse(JSON.stringify(diffResult));
-      if (isNeedDelay(res)) {
-        if (time) clearTimeout();
-        time = setTimeout(() => {
-          const start = Date.now();
-          this.setData(res, () => {
-            // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
-            // console.log('after setData', Date.now())
-          });
-        }, 200)
-      } else {
+      // console.log(res);
+      if (!isNeedDelay(res)) {
         // console.log('after diff', Date.now())
         const start = Date.now();
         this.setData(res, () => {
@@ -193,35 +174,11 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name, acti
       if (Object.keys(diffResult).length === 0) return;
       const res = JSON.parse(JSON.stringify(diffResult));
       // console.log(res);
-      // if (isActionStart) {
-      //   // 需手动通过 update 更新
-      //   console.log(globalDiffStore);
-      //   if (globalDiffStore[this.is]) {
-      //     const newDiff = assign({}, globalDiffStore[this.is].data, res);
-      //     globalDiffStore[this.is].data = newDiff;
-      //     // const oldData = globalDiffStore[this.is].data || {};
-      //     // globalDiffStore[this.is] = assign(oldData, res);
-      //   } else {
-      //     globalDiffStore[this.is] = {
-      //       own: this,
-      //       data: res
-      //     }
-      //   }
-      //   console.log(globalDiffStore);
-      //   // console.log(this.store);
-      //   this.store.globalDiffStore = globalDiffStore;
-      //   console.log(this.store)
-      // } else {
-      //   if (Object.keys(globalDiffStore).length > 0) {
-      //     completeUpdate();
-      //   } else {
-          const start = Date.now();
-          this.setData(res, () => {
-            // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
-            // console.log('after setData', Date.now())
-          });
-      //   }
-      // }
+      const start = Date.now();
+      this.setData(res, () => {
+        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
+        // console.log('after setData', Date.now())
+      });
     }
 
     const {

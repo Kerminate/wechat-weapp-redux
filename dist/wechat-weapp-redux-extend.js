@@ -290,8 +290,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return function wrapWithConnect(pageConfig) {
 
 	    function handleChange(options) {
-	      var _this = this;
-
 	      // console.log(" %c dispatch 触发","color:red");
 	      if (!this.unsubscribe) {
 	        return;
@@ -303,17 +301,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var mappedState = mapState(state, options);
 	      // console.log('after mapState', Date.now())
 	      if (!this.data || !mappedState || !Object.keys(mappedState)) return;
-	      // let isEqual = true;
-	      // for (let key in mappedState) {
-	      //   if (!deepEqual(this.data[key], mappedState[key])) {
-	      //     isEqual = false;
-	      //   }
-	      // }
-	      // if (isEqual) return;
-	      // this.setData(mappedState, () => {
-	      //   console.log('%c setData 耗时', "color: yellow", Date.now() - start);
-	      //   console.log('after setData', Date.now())
-	      // });
 	      var originData = {};
 	      for (var key in mappedState) {
 	        originData[key] = this.data[key];
@@ -322,16 +309,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (Object.keys(diffResult).length === 0) return;
 	      // TODO:深拷贝待优化
 	      var res = JSON.parse(JSON.stringify(diffResult));
-	      if ((0, _utils.isNeedDelay)(res)) {
-	        if (time) clearTimeout();
-	        time = setTimeout(function () {
-	          var start = Date.now();
-	          _this.setData(res, function () {
-	            // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
-	            // console.log('after setData', Date.now())
-	          });
-	        }, 200);
-	      } else {
+	      // console.log(res);
+	      if (!(0, _utils.isNeedDelay)(res)) {
 	        // console.log('after diff', Date.now())
 	        var start = Date.now();
 	        this.setData(res, function () {
@@ -457,35 +436,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (Object.keys(diffResult).length === 0) return;
 	      var res = JSON.parse(JSON.stringify(diffResult));
 	      // console.log(res);
-	      // if (isActionStart) {
-	      //   // 需手动通过 update 更新
-	      //   console.log(globalDiffStore);
-	      //   if (globalDiffStore[this.is]) {
-	      //     const newDiff = assign({}, globalDiffStore[this.is].data, res);
-	      //     globalDiffStore[this.is].data = newDiff;
-	      //     // const oldData = globalDiffStore[this.is].data || {};
-	      //     // globalDiffStore[this.is] = assign(oldData, res);
-	      //   } else {
-	      //     globalDiffStore[this.is] = {
-	      //       own: this,
-	      //       data: res
-	      //     }
-	      //   }
-	      //   console.log(globalDiffStore);
-	      //   // console.log(this.store);
-	      //   this.store.globalDiffStore = globalDiffStore;
-	      //   console.log(this.store)
-	      // } else {
-	      //   if (Object.keys(globalDiffStore).length > 0) {
-	      //     completeUpdate();
-	      //   } else {
 	      var start = Date.now();
 	      this.setData(res, function () {
 	        // console.log('%c setData 耗时', "color: yellow", Date.now() - start);
 	        // console.log('after setData', Date.now())
 	      });
-	      //   }
-	      // }
 	    }
 
 	    var _ready = componentConfig.ready,
