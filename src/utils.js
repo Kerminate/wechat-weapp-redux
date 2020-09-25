@@ -1,5 +1,5 @@
 const getIn = (obj, path, defaultVal = null) => {
-  const ret = path.reduce((xs, x) => (xs && xs[x] ? xs[x] : null), obj) || defaultVal;
+  const ret = path.reduce((xs, x) => (xs && xs[x] !== undefined ? xs[x] : null), obj) || defaultVal;
   return ret;
 }
 

@@ -109,7 +109,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var defaultVal = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
 	  var ret = path.reduce(function (xs, x) {
-	    return xs && xs[x] ? xs[x] : null;
+	    return xs && xs[x] !== undefined ? xs[x] : null;
 	  }, obj) || defaultVal;
 	  return ret;
 	};
