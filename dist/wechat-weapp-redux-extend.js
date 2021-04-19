@@ -326,6 +326,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	    function onLoad(options) {
+	      if (!app[storeName]) {
+	        app[storeName] = store;
+	      }
 	      this.store = app[storeName];
 	      if (!this.store) {
 	        (0, _warning2.default)("Store对象不存在!");
@@ -448,6 +451,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	    function ready(options) {
+	      if (!app[storeName]) {
+	        app[storeName] = store;
+	      }
 	      this.store = app[storeName];
 	      if (!this.store) {
 	        (0, _warning2.default)("Store对象不存在!");

@@ -68,6 +68,9 @@ function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
     } = pageConfig
 
     function onLoad(options) {
+      if (!app[storeName]) {
+        app[storeName] = store;
+      }
       this.store = app[storeName];
       if (!this.store) {
         warning("Store对象不存在!")
@@ -187,6 +190,9 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name, acti
     } = componentConfig
 
     function ready(options) {
+      if (!app[storeName]) {
+        app[storeName] = store;
+      }
       this.store = app[storeName];
       if (!this.store) {
         warning("Store对象不存在!")

@@ -1,6 +1,6 @@
 {
   "name": "wechat-weapp-redux-extend",
-  "version": "0.2.15",
+  "version": "0.2.16",
   "description": "Wechat weapp redux bindings",
   "main": "dist/wechat-weapp-redux-extend.js",
   "scripts": {
