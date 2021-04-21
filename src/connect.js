@@ -71,7 +71,7 @@ function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
       if (!app[storeName]) {
         app[storeName] = store;
       }
-      this.store = app[storeName];
+      this.store = store;
       if (!this.store) {
         warning("Store对象不存在!")
       }
@@ -91,7 +91,7 @@ function connectPage(mapStateToProps, mapDispatchToProps, store, name) {
       typeof this.unsubscribe === 'function' && this.unsubscribe()
     }
 
-    return assign({}, pageConfig, mapDispatch(app[storeName].dispatch), {onLoad, onUnload})
+    return assign({}, pageConfig, mapDispatch(store.dispatch), {onLoad, onUnload})
   }
 }
 
@@ -116,7 +116,7 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name, acti
   return function wrapWithConnect(componentConfig) {
 
     function actionDone(status) {
-      const actions = mapDispatch(app[storeName].dispatch);
+      const actions = mapDispatch(store.dispatch);
       Object.keys(actions).forEach(name => {
         if (name === actionDoneName) {
           actions[name](status);
@@ -132,20 +132,6 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name, acti
     function updateEnd() {
       console.log('updateEnd')
       actionDone(false);
-    }
-
-    function completeUpdate() {
-      const array = [];
-      const globalDiffStore = app[storeName].globalDiffStore || {};
-      // const globalDiffStore = app.globalDiffStore || {};
-      // console.log(globalDiffStore);
-      Object.keys(globalDiffStore).forEach(key => {
-        const diffConfig = globalDiffStore[key];
-        array.push(new Promise(() => diffConfig.own.setData.call(diffConfig.own, diffConfig.data)));
-      })
-      const newStore = assign({}, app[storeName], { globalDiffStore: {} });
-      app[storeName] = newStore;
-      // app.globalDiffStore = {};
     }
 
     function handleChange(options) {
@@ -193,7 +179,7 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name, acti
       if (!app[storeName]) {
         app[storeName] = store;
       }
-      this.store = app[storeName];
+      this.store = store;
       if (!this.store) {
         warning("Store对象不存在!")
       }
@@ -213,7 +199,7 @@ function connectComponent(mapStateToProps, mapDispatchToProps, store, name, acti
       typeof this.unsubscribe === 'function' && this.unsubscribe()
     }
 
-    const methods = assign({}, componentConfig.methods || {}, mapDispatch(app[storeName].dispatch), { updateStart, updateEnd });
+    const methods = assign({}, componentConfig.methods || {}, mapDispatch(store.dispatch), { updateStart, updateEnd });
 
     return assign({}, componentConfig, { ready, detached, methods })
   }
