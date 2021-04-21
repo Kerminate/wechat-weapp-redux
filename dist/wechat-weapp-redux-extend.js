@@ -329,7 +329,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!app[storeName]) {
 	        app[storeName] = store;
 	      }
-	      this.store = app[storeName];
+	      this.store = store;
 	      if (!this.store) {
 	        (0, _warning2.default)("Store对象不存在!");
 	      }
@@ -349,7 +349,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    return (0, _utils.assign)({}, pageConfig, mapDispatch(app[storeName].dispatch), { onLoad: onLoad, onUnload: onUnload });
+	    return (0, _utils.assign)({}, pageConfig, mapDispatch(store.dispatch), { onLoad: onLoad, onUnload: onUnload });
 	  };
 	}
 
@@ -376,7 +376,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return function wrapWithConnect(componentConfig) {
 
 	    function actionDone(status) {
-	      var actions = mapDispatch(app[storeName].dispatch);
+	      var actions = mapDispatch(store.dispatch);
 	      Object.keys(actions).forEach(function (name) {
 	        if (name === actionDoneName) {
 	          actions[name](status);
@@ -392,22 +392,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function updateEnd() {
 	      console.log('updateEnd');
 	      actionDone(false);
-	    }
-
-	    function completeUpdate() {
-	      var array = [];
-	      var globalDiffStore = app[storeName].globalDiffStore || {};
-	      // const globalDiffStore = app.globalDiffStore || {};
-	      // console.log(globalDiffStore);
-	      Object.keys(globalDiffStore).forEach(function (key) {
-	        var diffConfig = globalDiffStore[key];
-	        array.push(new Promise(function () {
-	          return diffConfig.own.setData.call(diffConfig.own, diffConfig.data);
-	        }));
-	      });
-	      var newStore = (0, _utils.assign)({}, app[storeName], { globalDiffStore: {} });
-	      app[storeName] = newStore;
-	      // app.globalDiffStore = {};
 	    }
 
 	    function handleChange(options) {
@@ -454,7 +438,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!app[storeName]) {
 	        app[storeName] = store;
 	      }
-	      this.store = app[storeName];
+	      this.store = store;
 	      if (!this.store) {
 	        (0, _warning2.default)("Store对象不存在!");
 	      }
@@ -474,7 +458,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      typeof this.unsubscribe === 'function' && this.unsubscribe();
 	    }
 
-	    var methods = (0, _utils.assign)({}, componentConfig.methods || {}, mapDispatch(app[storeName].dispatch), { updateStart: updateStart, updateEnd: updateEnd });
+	    var methods = (0, _utils.assign)({}, componentConfig.methods || {}, mapDispatch(store.dispatch), { updateStart: updateStart, updateEnd: updateEnd });
 
 	    return (0, _utils.assign)({}, componentConfig, { ready: ready, detached: detached, methods: methods });
 	  };
